@@ -1,0 +1,271 @@
+// Golang script to print greetings as an example for simple goroutines pattern
+package main
+
+import (
+	"bufio"
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"gopkg.in/yaml.v2"
+
+	glob "github.com/ganbarodigital/go_glob"
+)
+
+// DefPort is the default port
+const DefPort string = "443"
+
+// DefProtocol is the default protocol to use
+const DefProtocol string = "https"
+
+func printGreetingsWorkers(names *chan string, greeting string, numThreads int,
+	wg *sync.WaitGroup) {
+	// Execute workers to print greetings
+
+	// Start threads to complete task
+	for i := 0; i < numThreads; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for name := range *names {
+				// Print greeting
+				fmt.Printf("%s %s\n", greeting, name)
+			}
+		}()
+	}
+}
+
+// normalizeTarget is used to convert raw target string to target structs
+func normalizeTarget(rawTarget string, target *Target) {
+	// Convert target into a parseable URL
+	u, err := url.Parse(rawTarget)
+	if err != nil {
+		log.Printf("Error parsing target: %s as URL. Error: %s\n", rawTarget, err)
+	}
+	target.Host = u.Host
+	target.Port = u.Port()
+	if target.Port == "" {
+		target.Port = DefPort
+	}
+	target.Protocol = u.Scheme
+	if target.Protocol == "" {
+		target.Protocol = DefProtocol
+	}
+	target.Path = u.Path
+	queryMap := u.Query()
+	var qm []string
+	s := ""
+	for k, v := range queryMap {
+		qm = append(qm, fmt.Sprintf(s, "%s=%s", k, v))
+	}
+	target.Querystr = strings.Join(qm, "&")
+	if target.Path != "" {
+		target.Basepath = filepath.Dir(u.Path)
+	} else {
+		target.Basepath = ""
+	}
+}
+
+// normalizeTargetWorkers starts goroutines to convert raw targets to individual
+// target parts
+func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
+	numThreads int, wg *sync.WaitGroup) {
+	for i := 0; i < numThreads; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for rawTarget := range rawTargets {
+				// Normalize the target
+				var target Target
+				normalizeTarget(rawTarget, &target)
+
+				// Print the information about the target
+				log.Printf("Added target: %+v to targets", target)
+				*targets = append(*targets, target)
+
+			}
+		}()
+	}
+}
+
+// Parse the Checks file to a structure that we can read from
+func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
+	var checksFileStruct ChecksFileStruct
+	yamlFile, err := ioutil.ReadFile(checksFile)
+	if err != nil {
+		log.Printf("yamlFile.Get err   #%v ", err)
+	}
+	err = yaml.Unmarshal(yamlFile, &checksFileStruct)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+
+	*allchecks = checksFileStruct.Checks
+}
+
+// execChecksWorkers executes the checks
+func execChecksWorkers(checksToExec chan CheckToExec, numThreads int,
+	wg *sync.WaitGroup) {
+	for i := 0; i < numThreads; i++ {
+		log.Printf("Lunching worker: %d for execChecksWorker\n", i)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for checkToExec := range checksToExec {
+
+				// Execute the method based on the target
+				target := checkToExec.Target
+				method := checkToExec.Method
+				execMethod(&target, &method)
+			}
+		}()
+	}
+}
+
+// prepareChecksToExecWorkers is used to prepare the checks to execute and also
+// determine whether a check should be executed or not (based on glob user input)
+func prepareChecksToExecWorkers(allChecks []CheckStruct,
+	targets []Target, checksToExec chan CheckToExec,
+	checkIDsToExec string, methodIDsToExec string, numThreads int,
+	wg *sync.WaitGroup) {
+	for i := 0; i < numThreads; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			// Loop through each check and determine if check needs to be exec
+			for _, check := range allChecks {
+				checkID := check.ID
+				log.Printf("numThreads: %d, checkID: %s, checkIDsToExec: %s, targets: %+v", numThreads, checkID, checkIDsToExec, targets)
+				if shouldExecCheck(checkID, checkIDsToExec) {
+
+					// Check if the method needs to be executed
+					methods := check.Methods
+					for _, method := range methods {
+						methodID := method.ID
+						if shouldExecCheck(methodID, methodIDsToExec) {
+
+							log.Printf("numThreads: %d, checkID: %s, methodID: %s, checkIDsToExec: %s", numThreads, checkID, methodID, checkIDsToExec)
+
+							// Add target and method info as a check to execute
+							// listing
+							for _, t := range targets {
+								var checkToExec CheckToExec
+								checkToExec.CheckID = checkID
+								checkToExec.MethodID = methodID
+								checkToExec.Target = t
+								checkToExec.Method = method
+								log.Printf("Added check: %s, method: %s for target: %s to checksToExec\n",
+									checkID, methodID, t)
+								checksToExec <- checkToExec
+							}
+						}
+					}
+				}
+			}
+		}()
+	}
+}
+
+// shouldExecCheck determines if the check should be executed
+func shouldExecCheck(inp string, match string) bool {
+	if match == "all" {
+		return true
+	}
+	return containsGlobPattern(inp, match)
+}
+
+// containsGlobPattern checks if the input contains matching string
+func containsGlobPattern(inp string, match string) bool {
+
+	// Add * for 'contains' matching via glob
+	if !strings.Contains(match, "*") {
+		match = fmt.Sprintf("*%s*", match)
+	}
+
+	// Check if match found in input
+	myGlob := glob.NewGlob(match)
+	success, _ := myGlob.Match(inp)
+	return success
+}
+
+func main() {
+	var checksFile string
+	var numThreads int
+	var numThreadsNT int
+	var numThreadsPC int
+	var checkIDsToExec string
+	var methodIDsToExec string
+	var quiet string
+	flag.StringVar(&checksFile, "f", "vulnreview.yaml", "Checks File in YAML")
+	flag.StringVar(&checkIDsToExec, "c", "all", "Checks to execute")
+	flag.StringVar(&methodIDsToExec, "m", "all", "Methods to execute")
+	flag.IntVar(&numThreads, "numThreads", 10,
+		"Number of threads for vuln scanning")
+	flag.IntVar(&numThreadsNT, "numThreadsNT", 2,
+		"Number of threads for normalization of targets")
+	flag.IntVar(&numThreadsPC, "numThreadsPC", 2,
+		"Number of threads to prepare the checks from the target")
+	flag.BoolVar(&quiet, "quiet")
+	flag.Parse()
+
+	// Signature file should be found
+	if _, err := os.Stat(checksFile); os.IsNotExist(err) {
+		log.Fatalf("Checks File: %s does not exist\n", checksFile)
+	}
+
+	// Create sync group for normalization of the targets, perparing checks to
+	// execute and executing the check
+	var wgNT sync.WaitGroup
+	var wgPC sync.WaitGroup
+	var wgEC sync.WaitGroup
+
+	// targets to parse
+	rawTargets := make(chan string)
+
+	// Parse targets into this structs list
+	var targets []Target
+
+	// Keep a list of checks to execute
+	checksToExec := make(chan CheckToExec)
+
+	var allchecks []CheckStruct
+	parseChecksFile(checksFile, &allchecks)
+
+	// Parse the targets
+	normalizeTargetWorkers(&targets, rawTargets, numThreadsNT, &wgNT)
+
+	// Read assets to process from STDIN input
+	sc := bufio.NewScanner(os.Stdin)
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line != "" {
+			rawTargets <- line
+		}
+	}
+
+	// No more names, close channel and wait for print greeting workers to end
+	close(rawTargets)
+	wgNT.Wait()
+
+	// Start workers to execute the checks
+	execChecksWorkers(checksToExec, numThreads, &wgEC)
+
+	// Prepare a list of the relevant checks to execute for each target
+	prepareChecksToExecWorkers(allchecks, targets, checksToExec, checkIDsToExec,
+		methodIDsToExec, numThreadsPC, &wgPC)
+
+	wgPC.Wait()
+	close(checksToExec)
+
+	wgEC.Wait()
+
+}

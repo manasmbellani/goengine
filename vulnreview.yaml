@@ -82,6 +82,22 @@ checks:
       notes: > 
         - Add [] to input parameters, or ' and enable grep search to look 
         for error messages
+    - id: via_manual_debug_pages
+      type: notes
+      notes: >
+        - Search for any verbose/debug messages
+
+  - id: http_https_recon_phpinfo
+    methods:
+      - id: via_auto_webrequest
+        type: webrequest
+        url:
+          - "{basepath}/phpinfo"
+          - "{basepath}/phpinfo.php"
+          - "{basepath}/cgi-bin/phpinfo.php"
+        regex: "2.*(PHP Version |Additional .ini files parsed|PHP API|Zend Extension|Registered PHP Streams|Additional Modules)"
+        notes: >
+          Taken from: https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-on-debug-page
 
   - id: http_https_recon_robots_txt_file
     methods:
