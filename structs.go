@@ -8,6 +8,7 @@ type Target struct {
 	Path     string
 	Basepath string
 	Querystr string
+	Target   string
 }
 
 // CheckToExec is the method, check to execute
@@ -26,11 +27,13 @@ type CheckStruct struct {
 
 // MethodStruct is the method to deploy in method
 type MethodStruct struct {
-	ID    string   `yaml:"id"`
-	Type  string   `yaml:"type"`
-	Cmd   []string `yaml:"cmd"`
-	Regex string   `yaml:"regex"`
-	Notes string   `yaml:"notes"`
+	ID      string   `yaml:"id"`
+	Type    string   `yaml:"type"`
+	Cmds    []string `yaml:"cmd"`
+	CmdDir  string   `yaml:"cmddir"`
+	Outfile string   `yaml:"outfile"`
+	Regex   string   `yaml:"regex"`
+	Notes   string   `yaml:"notes"`
 }
 
 // ChecksFileStruct defines the structure of the Checks file (in YAML)
