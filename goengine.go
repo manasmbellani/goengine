@@ -82,7 +82,7 @@ func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
 func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 	numThreads int, outfolder string, wg *sync.WaitGroup) {
 	for i := 0; i < numThreads; i++ {
-		log.Printf("Lunching worker: %d for execChecksWorker\n", i)
+		log.Printf("[*] Launching worker: %d for execChecksWorker\n", i)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -93,8 +93,7 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 				method := checkToExec.Method
 				checkID := checkToExec.CheckID
 				methodID := checkToExec.MethodID
-				execMethod(target, checkID, methodID, method, outfolder,
-					restyClient)
+				execMethod(target, checkID, methodID, method, outfolder)
 			}
 		}()
 	}
@@ -124,7 +123,7 @@ func prepareChecksToExecWorkers(allChecks []CheckStruct,
 						checkToExec.MethodID = methodID
 						checkToExec.Target = t
 						checkToExec.Method = method
-						log.Printf("Added check: %s, method: %s for target: %s to checksToExec\n",
+						log.Printf("[*] Added check: %s, method: %s for target: %s to checksToExec\n",
 							checkID, methodID, t)
 						checksToExec <- checkToExec
 					}

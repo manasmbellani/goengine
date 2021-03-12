@@ -32,7 +32,7 @@ type MethodStruct struct {
 	Cmds       []string `yaml:"cmd"`
 	CmdDir     string   `yaml:"cmddir"`
 	HTTPMethod string   `yaml:"method"`
-	Urls       []string `yaml:"urls"`
+	Urls       []string `yaml:"url"`
 	Body       []struct {
 		Name  string `yaml:"name"`
 		Value string `yaml:"value"`

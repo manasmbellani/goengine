@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty"
 )
@@ -22,9 +23,12 @@ const WinCmdPath string = "cmd.exe"
 // DefUserAgent - Default user agent string
 const DefUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
 
+// WebTimeout is the timeout for web requests
+const WebTimeout = 5
+
 // execMethod is generallly used to execute particular commands
 func execMethod(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string, restyClient *resty.Client) {
+	method MethodStruct, outfolder string) {
 
 	methodType := method.Type
 	outfile := method.Outfile
@@ -37,7 +41,7 @@ func execMethod(target Target, checkID string, methodID string,
 	if methodType == "cmd" {
 		out = execCmd(target, checkID, methodID, method)
 	} else if methodType == "webrequest" {
-		out = execWebRequest(target, checkID, methodID, method, restyClient)
+		out = execWebRequest(target, checkID, methodID, method)
 	} else {
 		log.Printf("[-] Unknown method: %s, %s, %s\n", checkID, methodID, methodType)
 	}
@@ -115,7 +119,7 @@ func execCmd(target Target, checkID string, methodID string,
 // execWebRequest is used to execute web requests on a specific target given the
 // relevant method
 func execWebRequest(target Target, checkID string, methodID string,
-	method MethodStruct, restyClient *resty.Client) string {
+	method MethodStruct) string {
 	// Read vars for processing
 	urls := method.Urls
 	httpMethod := method.HTTPMethod
@@ -125,12 +129,21 @@ func execWebRequest(target Target, checkID string, methodID string,
 
 	totalOut := ""
 
+	// Create the restyClient for making web requests in this thread
+	restyClient := resty.New()
+	restyClient.SetTimeout(time.Duration(WebTimeout) * time.Second)
+
 	for _, urlToCheck := range urls {
 
 		// Determine if HTTP method is supported
 		httpMethod := strings.ToUpper(httpMethod)
+		if httpMethod == "" {
+			httpMethod = "GET"
+		}
+
+		// Currently, we only support specific methods
 		if (httpMethod != "GET") && (httpMethod != "POST") {
-			log.Printf("[-] Unsupported method: %s\n", httpMethod)
+			log.Printf("[-] Unsupported HTTP method: %s\n", httpMethod)
 			break
 		}
 
@@ -158,7 +171,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 		}
 
 		// Verbose message to be printed to let the user know
-		log.Printf("Make %s request to URL: %s\n", httpMethod,
+		log.Printf("[*] Make %s request to URL: %s\n", httpMethod,
 			urlToCheckSub)
 		var errResty error
 		var respResty *resty.Response
@@ -173,7 +186,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 			log.Println("[-] Error making request to URL: ",
 				urlToCheckSub, " Error: ", errResty)
 		}
-		log.Printf("Getting the raw HTTP request")
+		log.Printf("[*] Getting the raw HTTP request")
 		if errResty != nil {
 			fmt.Println(errResty)
 		}

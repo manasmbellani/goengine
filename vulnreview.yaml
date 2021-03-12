@@ -16,7 +16,7 @@ checks:
     - id: via_auto_test_webrequest
       type: webrequest
       url:
-        - https://www.google.com
+        - "{basepath}/robots.txt"
       outfile: out-test-echo-via-auto-test-webrequest-{host}.txt
         
   # ---------------------------------------------------------------------------
