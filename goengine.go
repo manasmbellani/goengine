@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	glob "github.com/ganbarodigital/go_glob"
+	"github.com/go-resty/resty"
 )
 
 // DefPort is the default port
@@ -78,8 +79,8 @@ func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
 }
 
 // execChecksWorkers executes the checks
-func execChecksWorkers(checksToExec chan CheckToExec, numThreads int,
-	wg *sync.WaitGroup) {
+func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
+	numThreads int, outfolder string, wg *sync.WaitGroup) {
 	for i := 0; i < numThreads; i++ {
 		log.Printf("Lunching worker: %d for execChecksWorker\n", i)
 		wg.Add(1)
@@ -92,7 +93,8 @@ func execChecksWorkers(checksToExec chan CheckToExec, numThreads int,
 				method := checkToExec.Method
 				checkID := checkToExec.CheckID
 				methodID := checkToExec.MethodID
-				execMethod(target, checkID, methodID, method)
+				execMethod(target, checkID, methodID, method, outfolder,
+					restyClient)
 			}
 		}()
 	}
@@ -160,6 +162,7 @@ func main() {
 	var numThreadsNT int
 	var checkIDsToExec string
 	var methodIDsToExec string
+	var outfolder string
 	var quiet bool
 	flag.StringVar(&checksFile, "f", "vulnreview.yaml", "Checks File in YAML")
 	flag.StringVar(&checkIDsToExec, "c", "all", "Checks to execute")
@@ -168,6 +171,8 @@ func main() {
 		"Number of threads for vuln scanning")
 	flag.IntVar(&numThreadsNT, "numThreadsNT", 2,
 		"Number of threads for normalization of targets")
+	flag.StringVar(&outfolder, "outfolder", "/opt/dockershare/goengine",
+		"Folder where the outfiles are written")
 	flag.BoolVar(&quiet, "q", false,
 		"Execute in quiet mode so no verbose messages are printed")
 	flag.Parse()
@@ -183,6 +188,10 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 
+	// Parse the checks file and end
+	var allchecks []CheckStruct
+	parseChecksFile(checksFile, &allchecks)
+
 	// Create sync group for normalization of the targets, perparing checks to
 	// execute and executing the check
 	var wgNT sync.WaitGroup
@@ -194,11 +203,11 @@ func main() {
 	// Parse targets into this structs list
 	var targets []Target
 
+	// Create a resty client and initialise it
+	restyClient := resty.New()
+
 	// Keep a list of checks to execute
 	checksToExec := make(chan CheckToExec)
-
-	var allchecks []CheckStruct
-	parseChecksFile(checksFile, &allchecks)
 
 	// Parse the targets
 	normalizeTargetWorkers(&targets, rawTargets, numThreadsNT, &wgNT)
@@ -217,7 +226,7 @@ func main() {
 	wgNT.Wait()
 
 	// Start workers to execute the checks
-	execChecksWorkers(checksToExec, numThreads, &wgEC)
+	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder, &wgEC)
 
 	// Prepare a list of the relevant checks to execute for each target
 	prepareChecksToExecWorkers(allchecks, targets, checksToExec, checkIDsToExec,

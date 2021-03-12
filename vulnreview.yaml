@@ -12,7 +12,13 @@ checks:
       regex: "^Hello.*"
       notes: >
         This is a test function only.
-
+      outfile: out-test-echo-via-auto-test-{host}.txt
+    - id: via_auto_test_webrequest
+      type: webrequest
+      url:
+        - https://www.google.com
+      outfile: out-test-echo-via-auto-test-webrequest-{host}.txt
+        
   # ---------------------------------------------------------------------------
   # Oracle T3 checks
   # ---------------------------------------------------------------------------
@@ -95,10 +101,16 @@ checks:
       notes: > 
         - Add [] to input parameters, or ' and enable grep search to look 
         for error messages
-    - id: via_manual_debug_pages
+    - id: via_manual_debug_pages_burpsuite
       type: notes
       notes: >
-        - Search for any verbose/debug messages
+        - Search for any verbose/debug messages via burpsuite 'debug' search
+    - id: via_manual_backup_files
+      type: notes
+      notes: >
+        - Run the dirsearch to discover any backup files.
+        - Taken from: https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-via-backup-files
+
 
   - id: http_https_recon_phpinfo
     methods:
