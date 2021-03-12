@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -31,38 +29,28 @@ func execMethod(target Target, checkID string, methodID string,
 	method MethodStruct, outfolder string) {
 
 	methodType := method.Type
-	outfile := method.Outfile
-
-	// Store the output result of executing function
-	out := ""
 
 	log.Printf("[*] Executing checkID: %s, methodID: %s of type: %s on target: %+v\n",
 		checkID, methodID, methodType, target)
 	if methodType == "cmd" {
-		out = execCmd(target, checkID, methodID, method)
+		execCmd(target, checkID, methodID, method, outfolder)
 	} else if methodType == "webrequest" {
-		out = execWebRequest(target, checkID, methodID, method)
+		execWebRequest(target, checkID, methodID, method, outfolder)
 	} else {
 		log.Printf("[-] Unknown method: %s, %s, %s\n", checkID, methodID, methodType)
 	}
 
-	// Write the output to the outfile
-	if outfile != "" {
-
-		outfileSub := subTargetParams(outfile, target)
-		outfileFullPath := filepath.Join(outfolder, outfileSub)
-		ioutil.WriteFile(outfileFullPath, []byte(out), 0644)
-	}
 }
 
 // execCmd is used to execute shell commands and return the results
 func execCmd(target Target, checkID string, methodID string,
-	method MethodStruct) string {
+	method MethodStruct, outfolder string) {
 
 	// Read the necessary variables to execute
 	cmdDir := method.CmdDir
 	cmds := method.Cmds
 	regex := method.Regex
+	outfile := method.Outfile
 
 	owd, _ := os.Getwd()
 	if cmdDir == "" {
@@ -111,21 +99,25 @@ func execCmd(target Target, checkID string, methodID string,
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+	} else {
+		if outfile != "" {
+			writeToOutfile(outfile, outfolder, totalOut, target)
+		}
 	}
 
-	return totalOut
 }
 
 // execWebRequest is used to execute web requests on a specific target given the
 // relevant method
 func execWebRequest(target Target, checkID string, methodID string,
-	method MethodStruct) string {
+	method MethodStruct, outfolder string) {
 	// Read vars for processing
 	urls := method.Urls
 	httpMethod := method.HTTPMethod
 	regex := method.Regex
 	mheaders := method.Headers
 	mbody := method.Body
+	outfile := method.Outfile
 
 	totalOut := ""
 
@@ -214,12 +206,15 @@ func execWebRequest(target Target, checkID string, methodID string,
 			// If matching regex found, then print the result
 			if shouldNotify(requestOut, regex) {
 				fmt.Printf("[%s-%s] %s\n", checkID, methodID, urlToCheckSub)
+			} else {
+				if outfile != "" {
+					writeToOutfile(outfile, outfolder, totalOut, target)
+				}
 			}
 
 			totalOut += requestOut
 		}
 	}
-	return totalOut
 }
 
 // execNotes is used to print the notes given the target and the method details
