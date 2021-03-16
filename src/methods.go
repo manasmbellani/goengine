@@ -70,8 +70,6 @@ func execURLInBrowser(target Target, checkID string, methodID string,
 	method MethodStruct, browserPath string) {
 	
 	urls := method.Urls
-	log.Printf("[v] urls: %s\n", strings.Join(urls, ","))
-	log.Printf("[v] method: %+v\n", method)
 
 	for _, url := range urls {
 		
