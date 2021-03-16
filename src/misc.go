@@ -19,5 +19,6 @@ func subTargetParams(str string, target Target) string {
 	ustr = strings.ReplaceAll(ustr, "{basepath}", target.Basepath)
 	ustr = strings.ReplaceAll(ustr, "{bpath}", target.Basepath)
 	ustr = strings.ReplaceAll(ustr, "{path}", target.Path)
+	ustr = strings.ReplaceAll(ustr, "{folder}", target.Folder)
 	return ustr
 }

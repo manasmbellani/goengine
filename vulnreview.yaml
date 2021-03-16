@@ -5,6 +5,23 @@ checks:
   # ---------------------------------------------------------------------------
   - id: test_echo
     methods:
+    - id: via_auto_grep
+      type: grep
+      outfile: out-test_echo-via_auto_grep.txt
+      keywords:
+        - test
+  
+    - id: via_auto_browser
+      type: browser
+      url:
+        - https://www.google.com
+
+    - id: via_auto_find
+      type: find
+      outfile: out-test_echo-via_auto_find.txt
+      files:
+        - test*
+
     - id: via_auto_test
       type: cmd
       cmd: 

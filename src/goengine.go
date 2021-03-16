@@ -80,7 +80,7 @@ func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
 
 // execChecksWorkers executes the checks
 func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
-	numThreads int, outfolder string, wg *sync.WaitGroup) {
+	numThreads int, outfolder string, browserPath string, wg *sync.WaitGroup) {
 	for i := 0; i < numThreads; i++ {
 		log.Printf("[*] Launching worker: %d for execChecksWorker\n", i)
 		wg.Add(1)
@@ -93,7 +93,8 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 				method := checkToExec.Method
 				checkID := checkToExec.CheckID
 				methodID := checkToExec.MethodID
-				execMethod(target, checkID, methodID, method, outfolder)
+				execMethod(target, checkID, methodID, method, outfolder, 
+					browserPath)
 			}
 		}()
 	}
@@ -224,8 +225,15 @@ func main() {
 	close(rawTargets)
 	wgNT.Wait()
 
+	// Determine the local browser
+	browserPath := locateBrowserPath()
+	if browserPath == "" {
+		log.Printf("[-] Browser not found to run browser checks")
+	}
+
 	// Start workers to execute the checks
-	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder, &wgEC)
+	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder, 
+		browserPath, &wgEC)
 
 	// Prepare a list of the relevant checks to execute for each target
 	prepareChecksToExecWorkers(allchecks, targets, checksToExec, checkIDsToExec,

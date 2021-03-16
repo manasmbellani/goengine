@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 	"time"
 
@@ -26,7 +23,7 @@ const WebTimeout = 5
 
 // execMethod is generallly used to execute particular commands
 func execMethod(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+	method MethodStruct, outfolder string, browserPath string) {
 
 	methodType := method.Type
 
@@ -36,10 +33,70 @@ func execMethod(target Target, checkID string, methodID string,
 		execCmd(target, checkID, methodID, method, outfolder)
 	} else if methodType == "webrequest" {
 		execWebRequest(target, checkID, methodID, method, outfolder)
+	} else if methodType == "grep" {
+		execGrepSearch(target, checkID, methodID, method, outfolder)
+	} else if methodType == "find" {
+		execFindSearch(target, checkID, methodID, method, outfolder)
+	} else if methodType == "browser" || methodType == "webbrowser" {
+		execURLInBrowser(target, checkID, methodID, method, browserPath)
 	} else {
 		log.Printf("[-] Unknown method: %s, %s, %s\n", checkID, methodID, methodType)
 	}
 
+}
+
+// execCodeSearch is used to run the search in the folder via grep for specific
+// keywords
+func execGrepSearch(target Target, checkID string, methodID string,
+	method MethodStruct, outfolder string) {
+	
+	keywords := method.Keywords
+	outfile := method.Outfile
+
+	cmdTemplate := "grep -A1 -B1 --color=always -rniE {keyword} {folder}"
+	
+	for _, keyword := range keywords {
+		cmdToExec := strings.ReplaceAll(cmdTemplate, "{keyword}", keyword)
+		totalOut := eCmd([]string{cmdToExec}, "", target)
+
+		if outfile != "" {
+			writeToOutfile(outfile, outfolder, totalOut, target)
+		}
+	}
+}
+
+// execURLInBrowser opens URL(s) in a browser
+func execURLInBrowser(target Target, checkID string, methodID string,
+	method MethodStruct, browserPath string) {
+	
+	urls := method.Urls
+	log.Printf("[v] urls: %s\n", strings.Join(urls, ","))
+	log.Printf("[v] method: %+v\n", method)
+
+	for _, url := range urls {
+		
+		urlToOpen := subTargetParams(url, target)
+		openURLInBrowser(urlToOpen, browserPath, target)
+	}
+}
+
+// execCodeSearch is used to run the search on folder for specific files
+func execFindSearch(target Target, checkID string, methodID string,
+	method MethodStruct, outfolder string) {
+	
+	files := method.Files
+	outfile := method.Outfile
+
+	cmdTemplate := "find {folder} -ipath \"*{file}\""
+	
+	for _, file := range files {
+		cmdToExec := strings.ReplaceAll(cmdTemplate, "{file}", file)
+		totalOut := eCmd([]string{cmdToExec}, "", target)
+
+		if outfile != "" {
+			writeToOutfile(outfile, outfolder, totalOut, target)
+		}
+	}
 }
 
 // execCmd is used to execute shell commands and return the results
@@ -52,49 +109,8 @@ func execCmd(target Target, checkID string, methodID string,
 	regex := method.Regex
 	outfile := method.Outfile
 
-	owd, _ := os.Getwd()
-	if cmdDir == "" {
-		cmdDir = owd
-	}
-
-	// Check if cmddir exists - otherwise, cannot execute anything
-	if _, err := os.Stat(cmdDir); os.IsNotExist(err) {
-		log.Printf("[-] Dir Path: %s not found", cmdDir)
-	}
-
-	// Build the commands
-	joinedCmds := strings.Join(cmds, "; ")
-	joinedCmds = fmt.Sprintf("cd %s; "+subTargetParams(joinedCmds, target)+"; cd %s",
-		cmdDir, owd)
-
-	// Let user know we are executing command
-	log.Printf("[*] Executing command: %s\n", joinedCmds)
-
-	// Determine the command to execute
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.Command(WinCmdPath, "/c", joinedCmds)
-	default:
-		cmd = exec.Command(LinBashPath, "-c", joinedCmds)
-	}
-
-	// Execute the command and get the output and error message
-	out, err := cmd.CombinedOutput()
-	var outStr, errStr, totalOut string
-	if out == nil {
-		outStr = ""
-	} else {
-		outStr = string(out)
-	}
-
-	if err == nil {
-		errStr = ""
-	} else {
-		errStr = string(err.Error())
-	}
-
-	totalOut = (outStr + "\n" + errStr)
+	// Execute the command to write to output
+	totalOut := eCmd(cmds, cmdDir, target)
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex) {
