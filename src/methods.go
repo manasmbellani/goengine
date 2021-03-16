@@ -52,16 +52,18 @@ func execGrepSearch(target Target, checkID string, methodID string,
 	
 	keywords := method.Keywords
 	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
 
 	cmdTemplate := "grep -A1 -B1 --color=always -rniE {keyword} {folder}"
 	
 	for _, keyword := range keywords {
 		cmdToExec := strings.ReplaceAll(cmdTemplate, "{keyword}", keyword)
-		totalOut := eCmd([]string{cmdToExec}, "", target)
+		joinedCmds := subTargetParams(cmdToExec, target)
+		totalOut := eCmd([]string{joinedCmds}, "")
 
-		if outfile != "" {
-			writeToOutfile(outfile, outfolder, totalOut, target)
-		}
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+			outfile, target)
+		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 }
 
@@ -74,7 +76,7 @@ func execURLInBrowser(target Target, checkID string, methodID string,
 	for _, url := range urls {
 		
 		urlToOpen := subTargetParams(url, target)
-		openURLInBrowser(urlToOpen, browserPath, target)
+		openURLInBrowser(urlToOpen, browserPath)
 	}
 }
 
@@ -84,16 +86,18 @@ func execFindSearch(target Target, checkID string, methodID string,
 	
 	files := method.Files
 	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
 
 	cmdTemplate := "find {folder} -ipath \"*{file}\""
 	
 	for _, file := range files {
 		cmdToExec := strings.ReplaceAll(cmdTemplate, "{file}", file)
-		totalOut := eCmd([]string{cmdToExec}, "", target)
+		joinedCmds := subTargetParams(cmdToExec, target)
+		totalOut := eCmd([]string{joinedCmds}, "")
 
-		if outfile != "" {
-			writeToOutfile(outfile, outfolder, totalOut, target)
-		}
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+			outfile, target)
+		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 }
 
@@ -106,17 +110,18 @@ func execCmd(target Target, checkID string, methodID string,
 	cmds := method.Cmds
 	regex := method.Regex
 	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
 
 	// Execute the command to write to output
-	totalOut := eCmd(cmds, cmdDir, target)
+	totalOut := eCmd(cmds, cmdDir)
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
 	} else {
-		if outfile != "" {
-			writeToOutfile(outfile, outfolder, totalOut, target)
-		}
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+			outfile, target)
+		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 
 }
@@ -132,6 +137,8 @@ func execWebRequest(target Target, checkID string, methodID string,
 	mheaders := method.Headers
 	mbody := method.Body
 	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
+
 
 	totalOut := ""
 
@@ -221,9 +228,9 @@ func execWebRequest(target Target, checkID string, methodID string,
 			if shouldNotify(requestOut, regex) {
 				fmt.Printf("[%s-%s] %s\n", checkID, methodID, urlToCheckSub)
 			} else {
-				if outfile != "" {
-					writeToOutfile(outfile, outfolder, totalOut, target)
-				}
+				outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+					outfile, target)
+				writeToOutfile(outfile, outfolder, totalOut, target)
 			}
 
 			totalOut += requestOut

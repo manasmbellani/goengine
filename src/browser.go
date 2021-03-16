@@ -28,14 +28,14 @@ func locateBrowserPath() string{
 }
 
 // openURLInBrowser opens a URL in the specified browser
-func openURLInBrowser (url string, browserPath string, target Target) {
+func openURLInBrowser (url string, browserPath string) {
 	// Cannot open URL if browser not found
 	if browserPath == "" {
 		log.Println("[-] Browser not found to open URL: ", url)
 	} else {
 		cmdToExec := fmt.Sprintf("\"%s\" \"%s\" 2>/dev/null 1>/dev/null &", 
 			browserPath, url)
-		eCmd([]string{cmdToExec}, "", target)
+		eCmd([]string{cmdToExec}, "")
 	}
 
 }

@@ -7,9 +7,9 @@ checks:
     methods:
     - id: via_auto_grep
       type: grep
-      outfile: out-test_echo-via_auto_grep.txt
       keywords:
         - test
+      writetofile: true
   
     - id: via_auto_browser
       type: browser

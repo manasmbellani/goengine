@@ -46,6 +46,7 @@ type MethodStruct struct {
 	Keywords  []string `yaml:"keywords"`
 	Files  	  []string `yaml:"files"`
 	Outfile   string `yaml:"outfile"`
+	WriteToOutfile bool `yaml:"writetofile"`
 	Regex     string `yaml:"regex"`
 	Notes     string `yaml:"notes"`
 }

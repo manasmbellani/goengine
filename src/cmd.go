@@ -9,17 +9,18 @@ import (
 	"runtime"
 )
 
-func eCmd(cmds []string, cmdDir string, target Target) string {
+func eCmd(cmds []string, cmdDir string) string {
 	owd, _ := os.Getwd()
 
 	// Check if cmddir exists - otherwise, cannot execute anything
-	if _, err := os.Stat(cmdDir); os.IsNotExist(err) {
-		log.Printf("[-] Dir Path: %s not found", cmdDir)
+	if cmdDir != "" {
+		if _, err := os.Stat(cmdDir); os.IsNotExist(err) {
+			log.Printf("[-] Dir Path: %s not found", cmdDir)
+		}
 	}
 
 	// Build the commands
-	joinedCmds := strings.Join(cmds, "; ")
-	joinedCmds = subTargetParams(joinedCmds, target)
+	joinedCmds := strings.Join(cmds, ";")
 	if cmdDir != "" {
 		joinedCmds = fmt.Sprintf("cd %s; " + joinedCmds + "; cd %s",
 			cmdDir, owd)
