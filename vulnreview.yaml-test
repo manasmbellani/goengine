@@ -1,0 +1,39 @@
+checks:
+
+  # ---------------------------------------------------------------------------
+  # Test functions
+  # ---------------------------------------------------------------------------
+  - id: test_echo
+    methods:
+    - id: via_auto_grep
+      type: grep
+      keywords:
+        - test
+      writetofile: true
+  
+    - id: via_auto_browser
+      type: browser
+      url:
+        - https://www.google.com
+
+    - id: via_auto_find
+      type: find
+      outfile: out-test_echo-via_auto_find.txt
+      files:
+        - test*
+
+    - id: via_auto_cmd
+      type: cmd
+      cmd: 
+        - echo "Hello {host}"
+      regex: "^Hello.*"
+      notes: >
+        This is a test function only.
+      outfile: out-test-echo-via-auto-test-{host}.txt
+
+    - id: via_auto_test_webrequest
+      type: webrequest
+      url:
+        - "{basepath}/robots.txt"
+      regex: "200.*(text/plain|Disallow:|Allow:|SiteMap:)"
+      outfile: out-test-echo-via-auto-test-webrequest-{host}.txt

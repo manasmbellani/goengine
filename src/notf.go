@@ -53,7 +53,7 @@ func generateOutfile(checkID string, methodID string, writeToOutfile bool,
 
 	outfile := ""
 
-	if outfile != "" {
+	if outfileMethod != "" {
 		outfile = outfileMethod
 	} else if writeToOutfile {
 		protocol := target.Protocol

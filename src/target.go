@@ -24,6 +24,9 @@ func normalizeTarget(rawTarget string, target *Target) {
 			target.Folder = target.Folder + "/"
 		}
 	} else {
+		target.Target = rawTarget
+		target.Host = u.Host
+		target.Port = u.Port()
 		if target.Protocol == "" {
 			target.Protocol = DefProtocol
 		}
@@ -36,9 +39,6 @@ func normalizeTarget(rawTarget string, target *Target) {
 				target.Port = DefPort
 			}
 		}
-		target.Target = rawTarget
-		target.Host = u.Host
-		target.Port = u.Port()
 		target.Path = target.Protocol + "://" + target.Host + ":" + target.Port + u.Path
 		queryMap := u.Query()
 		var qm []string
