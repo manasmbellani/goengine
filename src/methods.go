@@ -39,6 +39,8 @@ func execMethod(target Target, checkID string, methodID string,
 		execFindSearch(target, checkID, methodID, method, outfolder)
 	} else if methodType == "browser" || methodType == "webbrowser" {
 		execURLInBrowser(target, checkID, methodID, method, browserPath)
+	} else if methodType == "notes" {
+		// Do nothing with notes
 	} else {
 		log.Printf("[-] Unknown method: %s, %s, %s\n", checkID, methodID, methodType)
 	}
@@ -109,6 +111,7 @@ func execCmd(target Target, checkID string, methodID string,
 	cmdDir := method.CmdDir
 	cmds := method.Cmds
 	regex := method.Regex
+	alertOnMissing := method.AlertOnMissing
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
 
@@ -116,7 +119,7 @@ func execCmd(target Target, checkID string, methodID string,
 	totalOut := eCmd(cmds, cmdDir)
 
 	// If matching regex found, then print the result
-	if shouldNotify(totalOut, regex) {
+	if shouldNotify(totalOut, regex, alertOnMissing) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
@@ -134,6 +137,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 	urls := method.Urls
 	httpMethod := method.HTTPMethod
 	regex := method.Regex
+	alertOnMissing := method.AlertOnMissing
 	mheaders := method.Headers
 	mbody := method.Body
 	outfile := method.Outfile
@@ -225,7 +229,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 				respHeadersStr, respBody)
 
 			// If matching regex found, then print the result
-			if shouldNotify(requestOut, regex) {
+			if shouldNotify(requestOut, regex, alertOnMissing) {
 				fmt.Printf("[%s-%s] %s\n", checkID, methodID, urlToCheckSub)
 			} else {
 				outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 

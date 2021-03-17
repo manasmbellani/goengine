@@ -9,7 +9,7 @@ type Target struct {
 	Basepath string
 	Querystr string
 	Target   string
-	Folder	 string
+	Folder   string
 }
 
 // CheckToExec is the method, check to execute
@@ -43,12 +43,13 @@ type MethodStruct struct {
 		Name  string `yaml:"name"`
 		Value string `yaml:"value"`
 	} `yaml:"headers"`
-	Keywords  []string `yaml:"keywords"`
-	Files  	  []string `yaml:"files"`
-	Outfile   string `yaml:"outfile"`
-	WriteToOutfile bool `yaml:"writetofile"`
-	Regex     string `yaml:"regex"`
-	Notes     string `yaml:"notes"`
+	Keywords       []string `yaml:"keywords"`
+	Files          []string `yaml:"files"`
+	Outfile        string   `yaml:"outfile"`
+	WriteToOutfile bool     `yaml:"writetofile"`
+	Regex          string   `yaml:"regex"`
+	AlertOnMissing bool     `yaml:"alertonmissing"`
+	Notes          string   `yaml:"notes"`
 }
 
 // ChecksFileStruct defines the structure of the Checks file (in YAML)

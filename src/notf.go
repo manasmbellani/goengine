@@ -19,12 +19,17 @@ const OutfilePrefix = "out"
 const OutfileExtn = "txt"
 
 // shouldNotify is used to send notification based on input line and regex
-func shouldNotify(out string, regex string) bool {
+func shouldNotify(out string, regex string, alertOnMissing bool) bool {
 	found := false
 	if regex != "" {
 		outWithoutNewLines := strings.ReplaceAll(out, "\n", NewLineReplacement)
 		outWithoutNewLines = strings.ReplaceAll(outWithoutNewLines, "\r", NewLineReplacement)
-		found, _ = regexp.MatchString(regex, outWithoutNewLines)
+		foundMatch, _ := regexp.MatchString(regex, outWithoutNewLines)
+		if alertOnMissing {
+			found = !foundMatch
+		} else {
+			found = foundMatch
+		}
 	}
 	return found
 }
