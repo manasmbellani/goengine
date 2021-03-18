@@ -37,3 +37,15 @@ checks:
         - "{basepath}/robots.txt"
       regex: "200.*(text/plain|Disallow:|Allow:|SiteMap:)"
       outfile: out-test-echo-via-auto-test-webrequest-{host}.txt
+    
+    - id: via_auto_test_aws
+      type: aws
+      cmd:
+        - "s3 ls"
+      writetofile: true
+    
+    - id: via_auto_test_gcp
+      type: gcloud
+      cmd:
+        - "projects list"
+      writetofile: true

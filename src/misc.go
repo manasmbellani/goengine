@@ -20,5 +20,11 @@ func subTargetParams(str string, target Target) string {
 	ustr = strings.ReplaceAll(ustr, "{bpath}", target.Basepath)
 	ustr = strings.ReplaceAll(ustr, "{path}", target.Path)
 	ustr = strings.ReplaceAll(ustr, "{folder}", target.Folder)
+	ustr = strings.ReplaceAll(ustr, "{aws_profile}", target.AWSProfile)
+	ustr = strings.ReplaceAll(ustr, "{aws_region}", target.AWSRegion)
+	ustr = strings.ReplaceAll(ustr, "{gcp_account}", target.AWSProfile)
+	ustr = strings.ReplaceAll(ustr, "{gcp_project}", target.GCPProject)
+	ustr = strings.ReplaceAll(ustr, "{gcp_region}", target.GCPRegion)
+	ustr = strings.ReplaceAll(ustr, "{gcp_zone}", target.GCPZone)
 	return ustr
 }

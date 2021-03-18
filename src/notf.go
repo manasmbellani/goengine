@@ -68,6 +68,13 @@ func generateOutfile(checkID string, methodID string, writeToOutfile bool,
 			folder_name = strings.ReplaceAll(folder_name, "\\", "_")
 			outfile = fmt.Sprintf("%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID, 
 				folder_name, OutfileExtn)
+		} else if protocol == "aws" {
+			outfile = fmt.Sprintf("%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID, 
+				target.AWSProfile, target.AWSRegion, OutfileExtn)
+		} else if protocol == "gcp" {
+			outfile = fmt.Sprintf("%s-%s-%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID, 
+				target.GCPAccount, target.GCPProject, target.GCPRegion, target.GCPZone, 
+				OutfileExtn)
 		} else {
 			outfile = fmt.Sprintf("%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID, 
 				target.Host, OutfileExtn)

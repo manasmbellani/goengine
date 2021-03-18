@@ -32,6 +32,12 @@ func execMethod(target Target, checkID string, methodID string,
 		checkID, methodID, methodType, target)
 	if methodType == "cmd" {
 		execCmd(target, checkID, methodID, method, outfolder)
+	} else if methodType == "aws" {
+		execAWSCLICmd(target, checkID, methodID, method, outfolder)
+	} else if methodType == "gcloud" {
+		execGCloudCmd(target, checkID, methodID, method, outfolder)
+	} else if methodType == "bq" {
+		execBQCmd(target, checkID, methodID, method, outfolder)
 	} else if methodType == "webrequest" {
 		execWebRequest(target, checkID, methodID, method, outfolder)
 	} else if methodType == "grep" {
@@ -125,8 +131,114 @@ func execCmd(target Target, checkID string, methodID string,
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
 
+	// Substitue target params in the command
+	var subCmds []string
+	for _, cmd := range cmds {
+		subCmd := subTargetParams(cmd, target)
+		subCmds = append(subCmds, subCmd)
+	}
 	// Execute the command to write to output
-	totalOut := eCmd(cmds, cmdDir)
+	totalOut := eCmd(subCmds, cmdDir)
+
+	// If matching regex found, then print the result
+	if shouldNotify(totalOut, regex, alertOnMissing) {
+		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+	} else {
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+			outfile, target)
+		writeToOutfile(outfile, outfolder, totalOut, target)
+	}
+
+}
+
+// execAWSCmd is used to execute AWSCLI commands and return the results
+func execAWSCLICmd(target Target, checkID string, methodID string,
+	method MethodStruct, outfolder string) {
+
+	// Read the necessary variables to execute
+	cmdDir := method.CmdDir
+	cmds := method.Cmds
+	regex := method.Regex
+	alertOnMissing := method.AlertOnMissing
+	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
+	
+	// Convert commands to AWS Commands
+	var awsCmds []string
+	for _, cmd := range cmds {
+		awsCmd := subTargetParams("aws " + cmd + " --profile={aws_profile} --region={aws_region}",
+			target)
+		awsCmds = append(awsCmds, awsCmd)
+	}
+
+	// Execute the command to write to output
+	totalOut := eCmd(awsCmds, cmdDir)
+
+	// If matching regex found, then print the result
+	if shouldNotify(totalOut, regex, alertOnMissing) {
+		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+	} else {
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+			outfile, target)
+		writeToOutfile(outfile, outfolder, totalOut, target)
+	}
+
+}
+
+// execGCloudCmd is used to execute shell commands with gcloud and return results
+func execGCloudCmd(target Target, checkID string, methodID string,
+	method MethodStruct, outfolder string) {
+
+	// Read the necessary variables to execute
+	cmdDir := method.CmdDir
+	cmds := method.Cmds
+	regex := method.Regex
+	alertOnMissing := method.AlertOnMissing
+	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
+	
+	// Convert commands to AWS Commands
+	var gcloudCmds []string
+	for _, cmd := range cmds {
+		gcloudCmd := subTargetParams("gcloud " + cmd, target)
+		gcloudCmds = append(gcloudCmds, gcloudCmd)
+	}
+
+	// Execute the command to write to output
+	totalOut := eCmd(gcloudCmds, cmdDir)
+
+	// If matching regex found, then print the result
+	if shouldNotify(totalOut, regex, alertOnMissing) {
+		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+	} else {
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+			outfile, target)
+		writeToOutfile(outfile, outfolder, totalOut, target)
+	}
+
+}
+
+// execBQCmd is used to execute shell commands with gcloud and return results
+func execBQCmd(target Target, checkID string, methodID string,
+	method MethodStruct, outfolder string) {
+
+	// Read the necessary variables to execute
+	cmdDir := method.CmdDir
+	cmds := method.Cmds
+	regex := method.Regex
+	alertOnMissing := method.AlertOnMissing
+	outfile := method.Outfile
+	writeToOutfileFlag := method.WriteToOutfile
+	
+	// Convert commands to AWS Commands
+	var bqCmds []string
+	for _, cmd := range cmds {
+		bqCmd := subTargetParams("bq " + cmd, target)
+		bqCmds = append(bqCmds, bqCmd)
+	}
+
+	// Execute the command to write to output
+	totalOut := eCmd(bqCmds, cmdDir)
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {

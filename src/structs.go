@@ -10,6 +10,12 @@ type Target struct {
 	Querystr string
 	Target   string
 	Folder   string
+	AWSProfile string
+	AWSRegion string
+	GCPAccount string
+	GCPProject string
+	GCPRegion string
+	GCPZone string
 }
 
 // CheckToExec is the method, check to execute
