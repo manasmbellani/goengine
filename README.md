@@ -3,6 +3,12 @@ Golang script to perform vulnerability review
 
 
 ## Setup
+### Via go-get
+```
+go get -u github.com/manasmbellani/goengine/src/goengine
+```
+
+### Via git clone
 ```
 git clone github.com/manasmbellani/goengine /opt/goengine
 cd /opt/goengine
