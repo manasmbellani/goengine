@@ -19,3 +19,13 @@ To execute web checks on a URL/protocol path:
 ```
 echo http://www.google.com | goengine -m via_auto_test_webrequest -f vulnreview.yaml-test
 ```
+
+To execute `awscli` commands:
+```
+echo "gcp://athenaenterprises2021@gmail.com:clean-road-305712:us-central-1:us-central-1f" | goengine -f ../vulnreview.yaml-test -c test_echo -m via_auto_test_gcp
+```
+
+To execute `gcloud` commands:
+```
+echo "gcp://athenaenterprises2021@gmail.com:clean-road-305712:us-central-1:us-central-1f" | goengine -f ../vulnreview.yaml-test -c test_echo -m via_auto_test_gcp
+```
