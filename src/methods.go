@@ -23,7 +23,8 @@ const WebTimeout = 5
 
 // execMethod is generallly used to execute particular commands
 func execMethod(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string, browserPath string) {
+	method MethodStruct, outfolder string, browserPath string, 
+	extensionsToExclude string) {
 
 	methodType := method.Type
 
@@ -34,7 +35,8 @@ func execMethod(target Target, checkID string, methodID string,
 	} else if methodType == "webrequest" {
 		execWebRequest(target, checkID, methodID, method, outfolder)
 	} else if methodType == "grep" {
-		execGrepSearch(target, checkID, methodID, method, outfolder)
+		execGrepSearch(target, checkID, methodID, method, extensionsToExclude, 
+			outfolder)
 	} else if methodType == "find" {
 		execFindSearch(target, checkID, methodID, method, outfolder)
 	} else if methodType == "browser" || methodType == "webbrowser" {
@@ -50,13 +52,21 @@ func execMethod(target Target, checkID string, methodID string,
 // execCodeSearch is used to run the search in the folder via grep for specific
 // keywords
 func execGrepSearch(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+	method MethodStruct, extensionsToExclude string, outfolder string) {
 	
 	keywords := method.Keywords
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
+	
+	// Build the extensions command to exclude
+	extensionsToExcludeCmd := ""
+	for _, extn := range strings.Split(extensionsToExclude, ",") {
+		extnWS := strings.TrimSpace(extn)
+		extensionsToExcludeCmd += fmt.Sprintf(" --exclude=*.%s", extnWS)
+	}
 
-	cmdTemplate := "grep -A1 -B1 --color=always -rniE {keyword} {folder}"
+	cmdTemplate := "grep -A1 -B1 --color=always -rniE {keyword} {folder} "
+	cmdTemplate += extensionsToExcludeCmd
 	
 	for _, keyword := range keywords {
 		cmdToExec := strings.ReplaceAll(cmdTemplate, "{keyword}", keyword)

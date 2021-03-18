@@ -23,6 +23,9 @@ const DefPort string = "443"
 // DefProtocol is the default protocol to use
 const DefProtocol string = "https"
 
+// Extensions to exclude
+const DefExtensionsToExclude string = "jpg,svg,png,bmp"
+
 func printGreetingsWorkers(names *chan string, greeting string, numThreads int,
 	wg *sync.WaitGroup) {
 	// Execute workers to print greetings
@@ -80,7 +83,8 @@ func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
 
 // execChecksWorkers executes the checks
 func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
-	numThreads int, outfolder string, browserPath string, wg *sync.WaitGroup) {
+	numThreads int, outfolder string, browserPath string, extensionsToExclude string,
+	wg *sync.WaitGroup) {
 	for i := 0; i < numThreads; i++ {
 		log.Printf("[*] Launching worker: %d for execChecksWorker\n", i)
 		wg.Add(1)
@@ -94,7 +98,7 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 				checkID := checkToExec.CheckID
 				methodID := checkToExec.MethodID
 				execMethod(target, checkID, methodID, method, outfolder, 
-					browserPath)
+					browserPath, extensionsToExclude)
 			}
 		}()
 	}
@@ -163,6 +167,7 @@ func main() {
 	var checkIDsToExec string
 	var methodIDsToExec string
 	var outfolder string
+	var extensionsToExclude string
 	var quiet bool
 	flag.StringVar(&checksFile, "f", "vulnreview.yaml", "Checks File in YAML")
 	flag.StringVar(&checkIDsToExec, "c", "all", "Checks to execute")
@@ -173,6 +178,8 @@ func main() {
 		"Number of threads for normalization of targets")
 	flag.StringVar(&outfolder, "outfolder", "/opt/dockershare/goengine",
 		"Folder where the outfiles are written")
+	flag.StringVar(&extensionsToExclude, "ee", DefExtensionsToExclude, 
+		"Extensions to exclude when performing grep searches")
 	flag.BoolVar(&quiet, "q", false,
 		"Execute in quiet mode so no verbose messages are printed")
 	flag.Parse()
@@ -233,7 +240,7 @@ func main() {
 
 	// Start workers to execute the checks
 	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder, 
-		browserPath, &wgEC)
+		browserPath, extensionsToExclude, &wgEC)
 
 	// Prepare a list of the relevant checks to execute for each target
 	prepareChecksToExecWorkers(allchecks, targets, checksToExec, checkIDsToExec,
