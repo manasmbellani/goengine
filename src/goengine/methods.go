@@ -21,6 +21,12 @@ const DefUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKi
 // WebTimeout is the timeout for web requests
 const WebTimeout = 5
 
+// ShodanSearchTemplateURL is the Shodan URL Search template
+const ShodanSearchTemplateURL = "https://www.shodan.io/search?query="
+
+// GoogleSearchTemplateURL is the Google URL search template
+const GoogleSearchTemplateURL = "https://www.google.com/search?q="
+
 // execMethod is generallly used to execute particular commands
 func execMethod(target Target, checkID string, methodID string,
 	method MethodStruct, outfolder string, browserPath string, 
@@ -97,6 +103,38 @@ func execURLInBrowser(target Target, checkID string, methodID string,
 		openURLInBrowser(urlToOpen, browserPath)
 	}
 }
+
+// execShodanSearchInBrowser opens URL(s) in a browser
+func execShodanSearchInBrowser(target Target, checkID string, methodID string,
+	method MethodStruct, browserPath string) {
+
+	searchesQueries := method.Searches
+
+	for _, searchQuery := range searchesQueries {
+		
+		// Prepare a shodan search URL and open in browser
+		searchURL := ShodanSearchTemplateURL + searchQuery
+		urlToOpen := subTargetParams(searchURL, target)
+		openURLInBrowser(urlToOpen, browserPath)
+	}
+}	
+
+
+// execGoogleSearchInBrowser opens URL(s) in a browser
+func execGoogleSearchInBrowser(target Target, checkID string, methodID string,
+	method MethodStruct, browserPath string) {
+	
+	searchesQueries := method.Searches
+
+	for _, searchQuery := range searchesQueries {
+		
+		// Prepare a Google search URL and open in browser
+		searchURL := GoogleSearchTemplateURL + searchQuery
+		urlToOpen := subTargetParams(searchURL, target)
+		openURLInBrowser(urlToOpen, browserPath)
+	}
+}
+
 
 // execCodeSearch is used to run the search on folder for specific files
 func execFindSearch(target Target, checkID string, methodID string,

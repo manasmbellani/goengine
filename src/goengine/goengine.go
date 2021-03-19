@@ -24,7 +24,7 @@ const DefPort string = "443"
 const DefProtocol string = "https"
 
 // Extensions to exclude
-const DefExtensionsToExclude string = "jpg,svg,png,bmp"
+const DefExtensionsToExclude string = "jpg,svg,png,bmp,css"
 
 func printGreetingsWorkers(names *chan string, greeting string, numThreads int,
 	wg *sync.WaitGroup) {

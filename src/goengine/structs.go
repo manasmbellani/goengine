@@ -52,6 +52,7 @@ type MethodStruct struct {
 	Keywords       []string `yaml:"keywords"`
 	Files          []string `yaml:"files"`
 	Outfile        string   `yaml:"outfile"`
+	Searches []string `yaml:"search"`
 	WriteToOutfile bool     `yaml:"writetofile"`
 	Regex          string   `yaml:"regex"`
 	AlertOnMissing bool     `yaml:"alertonmissing"`
