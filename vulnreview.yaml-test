@@ -49,3 +49,14 @@ checks:
       cmd:
         - "projects list"
       writetofile: true
+
+    - id: via_manual_shodan
+      type: shodan
+      search:
+        - "test"
+
+    - id: via_manual_google
+      type: google
+      search:
+        - "test"
+      

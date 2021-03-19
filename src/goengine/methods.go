@@ -53,6 +53,10 @@ func execMethod(target Target, checkID string, methodID string,
 		execFindSearch(target, checkID, methodID, method, outfolder)
 	} else if methodType == "browser" || methodType == "webbrowser" {
 		execURLInBrowser(target, checkID, methodID, method, browserPath)
+	} else if methodType == "shodan" {
+		execShodanSearchInBrowser(target, checkID, methodID, method, browserPath)
+	} else if methodType == "google" {
+		execGoogleSearchInBrowser(target, checkID, methodID, method, browserPath)
 	} else if methodType == "notes" {
 		// Do nothing with notes
 	} else {
