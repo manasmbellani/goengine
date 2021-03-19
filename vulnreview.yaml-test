@@ -53,10 +53,10 @@ checks:
     - id: via_manual_shodan
       type: shodan
       search:
-        - "test"
+        - "test: {host}"
 
     - id: via_manual_google
       type: google
       search:
-        - "test"
+        - "test: {host}"
       
