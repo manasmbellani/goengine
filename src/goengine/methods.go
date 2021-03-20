@@ -57,7 +57,7 @@ func execMethod(target Target, checkID string, methodID string,
 		execShodanSearchInBrowser(target, checkID, methodID, method, browserPath)
 	} else if methodType == "google" {
 		execGoogleSearchInBrowser(target, checkID, methodID, method, browserPath)
-	} else if methodType == "notes" || methodType == "" || methodType == nil {
+	} else if methodType == "notes" || methodType == "" {
 		// Do nothing with notes
 	} else {
 		log.Printf("[-] Unknown method: %s, %s, %s\n", checkID, methodID, methodType)
