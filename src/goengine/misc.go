@@ -26,5 +26,6 @@ func subTargetParams(str string, target Target) string {
 	ustr = strings.ReplaceAll(ustr, "{gcp_project}", target.GCPProject)
 	ustr = strings.ReplaceAll(ustr, "{gcp_region}", target.GCPRegion)
 	ustr = strings.ReplaceAll(ustr, "{gcp_zone}", target.GCPZone)
+	ustr = strings.ReplaceAll(ustr, "{company}", target.Company)
 	return ustr
 }

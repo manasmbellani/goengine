@@ -16,6 +16,8 @@ type Target struct {
 	GCPProject string
 	GCPRegion string
 	GCPZone string
+	// Useful for lowhanging search
+	Company string
 }
 
 // CheckToExec is the method, check to execute
