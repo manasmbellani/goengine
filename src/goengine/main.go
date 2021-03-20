@@ -172,9 +172,9 @@ func main() {
 	flag.StringVar(&checksFile, "f", "vulnreview.yaml", "Checks File in YAML")
 	flag.StringVar(&checkIDsToExec, "c", "all", "Checks to execute")
 	flag.StringVar(&methodIDsToExec, "m", "all", "Methods to execute")
-	flag.IntVar(&numThreads, "numThreads", 10,
+	flag.IntVar(&numThreads, "numThreads", 50,
 		"Number of threads for vuln scanning")
-	flag.IntVar(&numThreadsNT, "numThreadsNT", 2,
+	flag.IntVar(&numThreadsNT, "numThreadsNT", 4,
 		"Number of threads for normalization of targets")
 	flag.StringVar(&outfolder, "outfolder", "/opt/dockershare/goengine",
 		"Folder where the outfiles are written")
