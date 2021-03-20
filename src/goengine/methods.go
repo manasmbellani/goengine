@@ -369,7 +369,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 		}
 		log.Printf("[*] Getting the raw HTTP request")
 		if errResty != nil {
-			fmt.Println(errResty)
+			log.Println("[-] ", errResty)
 		}
 
 		if respResty != nil {
