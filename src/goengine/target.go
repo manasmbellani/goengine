@@ -20,7 +20,7 @@ func normalizeTarget(rawTarget string, target *Target) {
 
 	// Get the protocol
 	target.Protocol = rawTargetParts[0]
-	
+
 	// Parse the folder input if we are dealing with a folder, and add trailing
 	// '/' if not present
 	if target.Protocol == "folder" {
@@ -38,7 +38,7 @@ func normalizeTarget(rawTarget string, target *Target) {
 			target.AWSRegion = targetParts[1]
 		}
 	} else if target.Protocol == "gcp" {
-		// Parse as GCP account information - GCP account, project, region and 
+		// Parse as GCP account information - GCP account, project, region and
 		// zone
 		targetParts := strings.Split(rawTargetWithoutProtocol, ":")
 		if len(targetParts) < 4 {

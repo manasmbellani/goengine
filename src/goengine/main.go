@@ -97,7 +97,7 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 				method := checkToExec.Method
 				checkID := checkToExec.CheckID
 				methodID := checkToExec.MethodID
-				execMethod(target, checkID, methodID, method, outfolder, 
+				execMethod(target, checkID, methodID, method, outfolder,
 					browserPath, extensionsToExclude)
 			}
 		}()
@@ -178,7 +178,7 @@ func main() {
 		"Number of threads for normalization of targets")
 	flag.StringVar(&outfolder, "outfolder", "/opt/dockershare/goengine",
 		"Folder where the outfiles are written")
-	flag.StringVar(&extensionsToExclude, "ee", DefExtensionsToExclude, 
+	flag.StringVar(&extensionsToExclude, "ee", DefExtensionsToExclude,
 		"Extensions to exclude when performing grep searches")
 	flag.BoolVar(&quiet, "q", false,
 		"Execute in quiet mode so no verbose messages are printed")
@@ -239,7 +239,7 @@ func main() {
 	}
 
 	// Start workers to execute the checks
-	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder, 
+	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder,
 		browserPath, extensionsToExclude, &wgEC)
 
 	// Prepare a list of the relevant checks to execute for each target

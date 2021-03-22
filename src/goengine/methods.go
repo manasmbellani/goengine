@@ -29,7 +29,7 @@ const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 
 // execMethod is generallly used to execute particular commands
 func execMethod(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string, browserPath string, 
+	method MethodStruct, outfolder string, browserPath string,
 	extensionsToExclude string) {
 
 	methodType := method.Type
@@ -47,7 +47,7 @@ func execMethod(target Target, checkID string, methodID string,
 	} else if methodType == "webrequest" {
 		execWebRequest(target, checkID, methodID, method, outfolder)
 	} else if methodType == "grep" {
-		execGrepSearch(target, checkID, methodID, method, extensionsToExclude, 
+		execGrepSearch(target, checkID, methodID, method, extensionsToExclude,
 			outfolder)
 	} else if methodType == "find" {
 		execFindSearch(target, checkID, methodID, method, outfolder)
@@ -69,11 +69,11 @@ func execMethod(target Target, checkID string, methodID string,
 // keywords
 func execGrepSearch(target Target, checkID string, methodID string,
 	method MethodStruct, extensionsToExclude string, outfolder string) {
-	
+
 	keywords := method.Keywords
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
-	
+
 	// Build the extensions command to exclude
 	extensionsToExcludeCmd := ""
 	for _, extn := range strings.Split(extensionsToExclude, ",") {
@@ -83,13 +83,13 @@ func execGrepSearch(target Target, checkID string, methodID string,
 
 	cmdTemplate := "grep -A1 -B1 --color=always -rniE {keyword} {folder} "
 	cmdTemplate += extensionsToExcludeCmd
-	
+
 	for _, keyword := range keywords {
 		cmdToExec := strings.ReplaceAll(cmdTemplate, "{keyword}", keyword)
 		joinedCmds := subTargetParams(cmdToExec, target)
 		totalOut := eCmd([]string{joinedCmds}, "")
 
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -98,11 +98,11 @@ func execGrepSearch(target Target, checkID string, methodID string,
 // execURLInBrowser opens URL(s) in a browser
 func execURLInBrowser(target Target, checkID string, methodID string,
 	method MethodStruct, browserPath string) {
-	
+
 	urls := method.Urls
 
 	for _, url := range urls {
-		
+
 		urlToOpen := subTargetParams(url, target)
 		openURLInBrowser(urlToOpen, browserPath)
 	}
@@ -115,23 +115,22 @@ func execShodanSearchInBrowser(target Target, checkID string, methodID string,
 	searchesQueries := method.Searches
 
 	for _, searchQuery := range searchesQueries {
-		
+
 		// Prepare a shodan search URL and open in browser
 		searchURL := ShodanSearchTemplateURL + searchQuery
 		urlToOpen := subTargetParams(searchURL, target)
 		openURLInBrowser(urlToOpen, browserPath)
 	}
-}	
-
+}
 
 // execGoogleSearchInBrowser opens URL(s) in a browser
 func execGoogleSearchInBrowser(target Target, checkID string, methodID string,
 	method MethodStruct, browserPath string) {
-	
+
 	searchesQueries := method.Searches
 
 	for _, searchQuery := range searchesQueries {
-		
+
 		// Prepare a Google search URL and open in browser
 		searchURL := GoogleSearchTemplateURL + searchQuery
 		urlToOpen := subTargetParams(searchURL, target)
@@ -139,23 +138,22 @@ func execGoogleSearchInBrowser(target Target, checkID string, methodID string,
 	}
 }
 
-
 // execCodeSearch is used to run the search on folder for specific files
 func execFindSearch(target Target, checkID string, methodID string,
 	method MethodStruct, outfolder string) {
-	
+
 	files := method.Files
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
 
 	cmdTemplate := "find {folder} -ipath \"*{file}\""
-	
+
 	for _, file := range files {
 		cmdToExec := strings.ReplaceAll(cmdTemplate, "{file}", file)
 		joinedCmds := subTargetParams(cmdToExec, target)
 		totalOut := eCmd([]string{joinedCmds}, "")
 
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -186,7 +184,7 @@ func execCmd(target Target, checkID string, methodID string,
 	if shouldNotify(totalOut, regex, alertOnMissing) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -204,11 +202,11 @@ func execAWSCLICmd(target Target, checkID string, methodID string,
 	alertOnMissing := method.AlertOnMissing
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
-	
+
 	// Convert commands to AWS Commands
 	var awsCmds []string
 	for _, cmd := range cmds {
-		awsCmd := subTargetParams("aws " + cmd + " --profile={aws_profile} --region={aws_region}",
+		awsCmd := subTargetParams("aws "+cmd+" --profile={aws_profile} --region={aws_region}",
 			target)
 		awsCmds = append(awsCmds, awsCmd)
 	}
@@ -220,7 +218,7 @@ func execAWSCLICmd(target Target, checkID string, methodID string,
 	if shouldNotify(totalOut, regex, alertOnMissing) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -238,11 +236,11 @@ func execGCloudCmd(target Target, checkID string, methodID string,
 	alertOnMissing := method.AlertOnMissing
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
-	
+
 	// Convert commands to AWS Commands
 	var gcloudCmds []string
 	for _, cmd := range cmds {
-		gcloudCmd := subTargetParams("gcloud " + cmd, target)
+		gcloudCmd := subTargetParams("gcloud "+cmd, target)
 		gcloudCmds = append(gcloudCmds, gcloudCmd)
 	}
 
@@ -253,7 +251,7 @@ func execGCloudCmd(target Target, checkID string, methodID string,
 	if shouldNotify(totalOut, regex, alertOnMissing) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -271,11 +269,11 @@ func execBQCmd(target Target, checkID string, methodID string,
 	alertOnMissing := method.AlertOnMissing
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
-	
+
 	// Convert commands to AWS Commands
 	var bqCmds []string
 	for _, cmd := range cmds {
-		bqCmd := subTargetParams("bq " + cmd, target)
+		bqCmd := subTargetParams("bq "+cmd, target)
 		bqCmds = append(bqCmds, bqCmd)
 	}
 
@@ -286,7 +284,7 @@ func execBQCmd(target Target, checkID string, methodID string,
 	if shouldNotify(totalOut, regex, alertOnMissing) {
 		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -306,7 +304,6 @@ func execWebRequest(target Target, checkID string, methodID string,
 	mbody := method.Body
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
-
 
 	totalOut := ""
 
@@ -396,7 +393,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 			if shouldNotify(requestOut, regex, alertOnMissing) {
 				fmt.Printf("[%s-%s] %s\n", checkID, methodID, urlToCheckSub)
 			} else {
-				outfile = generateOutfile(checkID, methodID, writeToOutfileFlag, 
+				outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
 					outfile, target)
 				writeToOutfile(outfile, outfolder, totalOut, target)
 			}

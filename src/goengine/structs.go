@@ -2,20 +2,20 @@ package main
 
 // Target to execute checks against
 type Target struct {
-	Host     string
-	Protocol string
-	Port     string
-	Path     string
-	Basepath string
-	Querystr string
-	Target   string
-	Folder   string
+	Host       string
+	Protocol   string
+	Port       string
+	Path       string
+	Basepath   string
+	Querystr   string
+	Target     string
+	Folder     string
 	AWSProfile string
-	AWSRegion string
+	AWSRegion  string
 	GCPAccount string
 	GCPProject string
-	GCPRegion string
-	GCPZone string
+	GCPRegion  string
+	GCPZone    string
 	// Useful for lowhanging search
 	Company string
 }
@@ -54,7 +54,7 @@ type MethodStruct struct {
 	Keywords       []string `yaml:"keyword"`
 	Files          []string `yaml:"files"`
 	Outfile        string   `yaml:"outfile"`
-	Searches []string `yaml:"search"`
+	Searches       []string `yaml:"search"`
 	WriteToOutfile bool     `yaml:"writetofile"`
 	Regex          string   `yaml:"regex"`
 	AlertOnMissing bool     `yaml:"alertonmissing"`

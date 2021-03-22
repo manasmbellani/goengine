@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"runtime"
+	"strings"
 )
 
 func eCmd(cmds []string, cmdDir string) string {
@@ -22,7 +22,7 @@ func eCmd(cmds []string, cmdDir string) string {
 	// Build the commands
 	joinedCmds := strings.Join(cmds, ";")
 	if cmdDir != "" {
-		joinedCmds = fmt.Sprintf("cd %s; " + joinedCmds + "; cd %s",
+		joinedCmds = fmt.Sprintf("cd %s; "+joinedCmds+"; cd %s",
 			cmdDir, owd)
 	}
 
