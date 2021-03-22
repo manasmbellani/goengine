@@ -81,7 +81,7 @@ func execGrepSearch(target Target, checkID string, methodID string,
 		extensionsToExcludeCmd += fmt.Sprintf(" --exclude=*.%s", extnWS)
 	}
 
-	cmdTemplate := "grep -A1 -B1 --color=always -rniE {keyword} {folder} "
+	cmdTemplate := "grep -A1 -B1 --color=always -rniE \"{keyword}\" \"{folder}\""
 	cmdTemplate += extensionsToExcludeCmd
 
 	for _, keyword := range keywords {
@@ -146,7 +146,7 @@ func execFindSearch(target Target, checkID string, methodID string,
 	outfile := method.Outfile
 	writeToOutfileFlag := method.WriteToOutfile
 
-	cmdTemplate := "find {folder} -ipath \"*{file}\""
+	cmdTemplate := "find \"{folder}\" -ipath \"*{file}\""
 
 	for _, file := range files {
 		cmdToExec := strings.ReplaceAll(cmdTemplate, "{file}", file)
