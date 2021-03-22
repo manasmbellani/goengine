@@ -52,7 +52,7 @@ type MethodStruct struct {
 		Value string `yaml:"value"`
 	} `yaml:"headers"`
 	Keywords       []string `yaml:"keyword"`
-	Files          []string `yaml:"files"`
+	Files          []string `yaml:"file"`
 	Outfile        string   `yaml:"outfile"`
 	Searches       []string `yaml:"search"`
 	WriteToOutfile bool     `yaml:"writetofile"`
