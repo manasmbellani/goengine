@@ -40,7 +40,7 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 			target.AWSProfile = targetParts[0]
 			target.AWSRegion = targetParts[1]
 		}
-	} else if target.Protocol == "gcp" {
+	} else if target.Protocol == "gcp" || target.Protocol == "gcloud" {
 		// Parse as GCP account information - GCP account, project, region and
 		// zone
 		targetParts := strings.Split(rawTargetWithoutProtocol, ":")
