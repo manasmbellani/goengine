@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	glob "github.com/ganbarodigital/go_glob"
-	"github.com/go-resty/resty"
+	"github.com/go-resty/resty/v2"
 )
 
 // DefPort is the default port
