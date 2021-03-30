@@ -49,9 +49,9 @@ func normalizeTarget(rawTarget string, target *Target) {
 			target.GCPRegion = targetParts[2]
 			target.GCPZone = targetParts[3]
 		}
-	} else if target.Protocol == "lowhanging" {
+	} else if target.Protocol == "lowhanging" || target.Protocol == "recon" {
 		// When performing lowhanging checks, specify target in format:
-		// 	lowhanging://<domain>:<company>
+		// 	lowhanging://<domain>:<company> OR recon://<domain>:<company>
 		targetParts := strings.Split(rawTargetWithoutProtocol, ":")
 		target.Host = targetParts[0]
 		target.Company = targetParts[1]
