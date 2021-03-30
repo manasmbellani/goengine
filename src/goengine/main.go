@@ -46,7 +46,7 @@ func printGreetingsWorkers(names *chan string, greeting string, numThreads int,
 // normalizeTargetWorkers starts goroutines to convert raw targets to individual
 // target parts
 func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
-	numThreads int, wg *sync.WaitGroup) {
+	outfolder string, numThreads int, wg *sync.WaitGroup) {
 	for i := 0; i < numThreads; i++ {
 		wg.Add(1)
 		go func() {
@@ -55,7 +55,7 @@ func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
 			for rawTarget := range rawTargets {
 				// Normalize the target
 				var target Target
-				normalizeTarget(rawTarget, &target)
+				normalizeTarget(rawTarget, &target, outfolder)
 
 				// Print the information about the target
 				log.Printf("Added target: %+v to targets", target)
@@ -217,7 +217,7 @@ func main() {
 	checksToExec := make(chan CheckToExec)
 
 	// Parse the targets
-	normalizeTargetWorkers(&targets, rawTargets, numThreadsNT, &wgNT)
+	normalizeTargetWorkers(&targets, rawTargets, outfolder, numThreadsNT, &wgNT)
 
 	// Read assets to process from STDIN input
 	sc := bufio.NewScanner(os.Stdin)

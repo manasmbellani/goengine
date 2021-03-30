@@ -8,7 +8,7 @@ import (
 )
 
 // normalizeTarget is used to convert raw target string to target structs
-func normalizeTarget(rawTarget string, target *Target) {
+func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 	// Check the format of the rawTarget
 	rawTargetParts := strings.Split(rawTarget, "://")
 	var rawTargetWithoutProtocol string
@@ -20,6 +20,9 @@ func normalizeTarget(rawTarget string, target *Target) {
 
 	// Get the protocol
 	target.Protocol = rawTargetParts[0]
+
+	// Add the output folder as well
+	target.Outfolder = outfolder
 
 	// Parse the folder input if we are dealing with a folder, and add trailing
 	// '/' if not present

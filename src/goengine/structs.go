@@ -2,6 +2,7 @@ package main
 
 // Target to execute checks against
 type Target struct {
+	Outfolder  string
 	Host       string
 	Protocol   string
 	Port       string
