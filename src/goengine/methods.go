@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"crypto/tls"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -312,7 +313,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 
 	// Set timeout and ignore verification of certificates
 	restyClient.SetTimeout(time.Duration(WebTimeout) * time.Second)
-	client.SetTLSClientConfig(&tls.Config{ InsecureSkipVerify: true })
+	restyClient.SetTLSClientConfig(&tls.Config{ InsecureSkipVerify: true })
 
 	for _, urlToCheck := range urls {
 
