@@ -309,7 +309,10 @@ func execWebRequest(target Target, checkID string, methodID string,
 
 	// Create the restyClient for making web requests in this thread
 	restyClient := resty.New()
+
+	// Set timeout and ignore verification of certificates
 	restyClient.SetTimeout(time.Duration(WebTimeout) * time.Second)
+	client.SetTLSClientConfig(&tls.Config{ InsecureSkipVerify: true })
 
 	for _, urlToCheck := range urls {
 
