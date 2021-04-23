@@ -53,30 +53,30 @@ func writeToOutfile(outfile string, outfolder string, out string, target Target)
 }
 
 // generateOutfile is used to generate the output file name
-func generateOutfile(checkID string, methodID string, writeToOutfile bool,
-	outfileMethod string, target Target) string {
+func generateOutfile(checkID string, writeToOutfile bool,
+	outfileCheck string, target Target) string {
 
 	outfile := ""
 
-	if outfileMethod != "" {
-		outfile = outfileMethod
+	if outfileCheck != "" {
+		outfile = outfileCheck
 	} else if writeToOutfile {
 		protocol := target.Protocol
 		if protocol == "folder" {
 			// Build the file name replacing disallowed characters with '_'
 			folder_name := strings.ReplaceAll(target.Folder, "/", "_")
 			folder_name = strings.ReplaceAll(folder_name, "\\", "_")
-			outfile = fmt.Sprintf("%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID,
+			outfile = fmt.Sprintf("%s-%s-%s.%s", OutfilePrefix, checkID,
 				folder_name, OutfileExtn)
 		} else if protocol == "aws" {
-			outfile = fmt.Sprintf("%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID,
+			outfile = fmt.Sprintf("%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID,
 				target.AWSProfile, target.AWSRegion, OutfileExtn)
 		} else if protocol == "gcp" || protocol == "gcloud" {
-			outfile = fmt.Sprintf("%s-%s-%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID,
+			outfile = fmt.Sprintf("%s-%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID,
 				target.GCPAccount, target.GCPProject, target.GCPRegion, target.GCPZone,
 				OutfileExtn)
 		} else {
-			outfile = fmt.Sprintf("%s-%s-%s-%s.%s", OutfilePrefix, checkID, methodID,
+			outfile = fmt.Sprintf("%s-%s-%s.%s", OutfilePrefix, checkID,
 				target.Host, OutfileExtn)
 		}
 	} else {

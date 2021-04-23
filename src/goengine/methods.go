@@ -28,52 +28,51 @@ const ShodanSearchTemplateURL = "https://www.shodan.io/search?query="
 // GoogleSearchTemplateURL is the Google URL search template
 const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 
-// execMethod is generallly used to execute particular commands
-func execMethod(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string, browserPath string,
-	extensionsToExclude string) {
+// execCheck is generallly used to execute particular commands
+func execCheck(target Target, checkID string, checkDetails CheckStruct,
+	outfolder string, browserPath string, extensionsToExclude string) {
 
-	methodType := method.Type
+	checkType := checkDetails.Type
 
-	log.Printf("[*] Executing checkID: %s, methodID: %s of type: %s on target: %+v\n",
-		checkID, methodID, methodType, target)
-	if methodType == "cmd" {
-		execCmd(target, checkID, methodID, method, outfolder)
-	} else if methodType == "aws" {
-		execAWSCLICmd(target, checkID, methodID, method, outfolder)
-	} else if methodType == "gcloud" {
-		execGCloudCmd(target, checkID, methodID, method, outfolder)
-	} else if methodType == "bq" {
-		execBQCmd(target, checkID, methodID, method, outfolder)
-	} else if methodType == "webrequest" {
-		execWebRequest(target, checkID, methodID, method, outfolder)
-	} else if methodType == "grep" {
-		execGrepSearch(target, checkID, methodID, method, extensionsToExclude,
+	log.Printf("[*] Executing checkID: %s of type: %s on target: %+v\n",
+		checkID, checkType, target)
+	if checkType == "cmd" {
+		execCmd(target, checkID, checkDetails, outfolder)
+	} else if checkType == "aws" {
+		execAWSCLICmd(target, checkID, checkDetails, outfolder)
+	} else if checkType == "gcloud" {
+		execGCloudCmd(target, checkID, checkDetails, outfolder)
+	} else if checkType == "bq" {
+		execBQCmd(target, checkID, checkDetails, outfolder)
+	} else if checkType == "webrequest" {
+		execWebRequest(target, checkID, checkDetails, outfolder)
+	} else if checkType == "grep" {
+		execGrepSearch(target, checkID, checkDetails, extensionsToExclude,
 			outfolder)
-	} else if methodType == "find" {
-		execFindSearch(target, checkID, methodID, method, outfolder)
-	} else if methodType == "browser" || methodType == "webbrowser" {
-		execURLInBrowser(target, checkID, methodID, method, browserPath)
-	} else if methodType == "shodan" {
-		execShodanSearchInBrowser(target, checkID, methodID, method, browserPath)
-	} else if methodType == "google" {
-		execGoogleSearchInBrowser(target, checkID, methodID, method, browserPath)
-	} else if methodType == "notes" || methodType == "" {
+	} else if checkType == "find" {
+		execFindSearch(target, checkID, checkDetails, outfolder)
+	} else if checkType == "browser" || checkType == "webbrowser" {
+		execURLInBrowser(target, checkID, checkDetails, browserPath)
+	} else if checkType == "shodan" {
+		execShodanSearchInBrowser(target, checkID, checkDetails, browserPath)
+	} else if checkType == "google" {
+		execGoogleSearchInBrowser(target, checkID, checkDetails, browserPath)
+	} else if checkType == "notes" || checkType == "" {
 		// Do nothing with notes
 	} else {
-		log.Printf("[-] Unknown method: %s, %s, %s\n", checkID, methodID, methodType)
+		log.Printf("[-] Unknown check: %s of type: %s\n", checkID, checkType)
 	}
 
 }
 
 // execCodeSearch is used to run the search in the folder via grep for specific
 // keywords
-func execGrepSearch(target Target, checkID string, methodID string,
-	method MethodStruct, extensionsToExclude string, outfolder string) {
+func execGrepSearch(target Target, checkID string, checkDetails CheckStruct, 
+	extensionsToExclude string, outfolder string) {
 
-	keywords := method.Keywords
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	keywords := checkDetails.Keywords
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	// Build the extensions command to exclude
 	extensionsToExcludeCmd := ""
@@ -90,17 +89,17 @@ func execGrepSearch(target Target, checkID string, methodID string,
 		joinedCmds := subTargetParams(cmdToExec, target)
 		totalOut := eCmd([]string{joinedCmds}, "")
 
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
+		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 }
 
 // execURLInBrowser opens URL(s) in a browser
-func execURLInBrowser(target Target, checkID string, methodID string,
-	method MethodStruct, browserPath string) {
+func execURLInBrowser(target Target, checkID string, checkDetails CheckStruct,
+	browserPath string) {
 
-	urls := method.Urls
+	urls := checkDetails.Urls
 
 	for _, url := range urls {
 
@@ -110,10 +109,10 @@ func execURLInBrowser(target Target, checkID string, methodID string,
 }
 
 // execShodanSearchInBrowser opens URL(s) in a browser
-func execShodanSearchInBrowser(target Target, checkID string, methodID string,
-	method MethodStruct, browserPath string) {
+func execShodanSearchInBrowser(target Target, checkID string, checkDetails CheckStruct, 
+	browserPath string) {
 
-	searchesQueries := method.Searches
+	searchesQueries := checkDetails.Searches
 
 	for _, searchQuery := range searchesQueries {
 
@@ -125,10 +124,10 @@ func execShodanSearchInBrowser(target Target, checkID string, methodID string,
 }
 
 // execGoogleSearchInBrowser opens URL(s) in a browser
-func execGoogleSearchInBrowser(target Target, checkID string, methodID string,
-	method MethodStruct, browserPath string) {
+func execGoogleSearchInBrowser(target Target, checkID string, checkDetails CheckStruct, 
+	browserPath string) {
 
-	searchesQueries := method.Searches
+	searchesQueries := checkDetails.Searches
 
 	for _, searchQuery := range searchesQueries {
 
@@ -140,12 +139,12 @@ func execGoogleSearchInBrowser(target Target, checkID string, methodID string,
 }
 
 // execCodeSearch is used to run the search on folder for specific files
-func execFindSearch(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+func execFindSearch(target Target, checkID string, checkDetails CheckStruct, 
+	outfolder string) {
 
-	files := method.Files
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	files := checkDetails.Files
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	cmdTemplate := "find \"{folder}\" -ipath \"*{file}\""
 
@@ -154,23 +153,23 @@ func execFindSearch(target Target, checkID string, methodID string,
 		joinedCmds := subTargetParams(cmdToExec, target)
 		totalOut := eCmd([]string{joinedCmds}, "")
 
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
+		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 }
 
 // execCmd is used to execute shell commands and return the results
-func execCmd(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+func execCmd(target Target, checkID string, checkDetails CheckStruct, 
+	outfolder string) {
 
 	// Read the necessary variables to execute
-	cmdDir := method.CmdDir
-	cmds := method.Cmds
-	regex := method.Regex
-	alertOnMissing := method.AlertOnMissing
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	cmdDir := checkDetails.CmdDir
+	cmds := checkDetails.Cmds
+	regex := checkDetails.Regex
+	alertOnMissing := checkDetails.AlertOnMissing
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	// Substitue target params in the command
 	var subCmds []string
@@ -183,9 +182,9 @@ func execCmd(target Target, checkID string, methodID string,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+		fmt.Printf("[%s] %s\n", checkID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
+		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
@@ -193,16 +192,16 @@ func execCmd(target Target, checkID string, methodID string,
 }
 
 // execAWSCmd is used to execute AWSCLI commands and return the results
-func execAWSCLICmd(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+func execAWSCLICmd(target Target, checkID string, checkDetails CheckStruct, 
+	outfolder string) {
 
 	// Read the necessary variables to execute
-	cmdDir := method.CmdDir
-	cmds := method.Cmds
-	regex := method.Regex
-	alertOnMissing := method.AlertOnMissing
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	cmdDir := checkDetails.CmdDir
+	cmds := checkDetails.Cmds
+	regex := checkDetails.Regex
+	alertOnMissing := checkDetails.AlertOnMissing
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	// Convert commands to AWS Commands
 	var awsCmds []string
@@ -217,26 +216,25 @@ func execAWSCLICmd(target Target, checkID string, methodID string,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+		fmt.Printf("[%s] %s\n", checkID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
-			outfile, target)
+		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 
 }
 
 // execGCloudCmd is used to execute shell commands with gcloud and return results
-func execGCloudCmd(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct, 
+	outfolder string) {
 
 	// Read the necessary variables to execute
-	cmdDir := method.CmdDir
-	cmds := method.Cmds
-	regex := method.Regex
-	alertOnMissing := method.AlertOnMissing
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	cmdDir := checkDetails.CmdDir
+	cmds := checkDetails.Cmds
+	regex := checkDetails.Regex
+	alertOnMissing := checkDetails.AlertOnMissing
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	// Convert commands to AWS Commands
 	var gcloudCmds []string
@@ -250,26 +248,25 @@ func execGCloudCmd(target Target, checkID string, methodID string,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+		fmt.Printf("[%s] %s\n", checkID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
-			outfile, target)
+		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 
 }
 
 // execBQCmd is used to execute shell commands with gcloud and return results
-func execBQCmd(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+func execBQCmd(target Target, checkID string, checkDetails CheckStruct, 
+	outfolder string) {
 
 	// Read the necessary variables to execute
-	cmdDir := method.CmdDir
-	cmds := method.Cmds
-	regex := method.Regex
-	alertOnMissing := method.AlertOnMissing
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	cmdDir := checkDetails.CmdDir
+	cmds := checkDetails.Cmds
+	regex := checkDetails.Regex
+	alertOnMissing := checkDetails.AlertOnMissing
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	// Convert commands to AWS Commands
 	var bqCmds []string
@@ -283,28 +280,27 @@ func execBQCmd(target Target, checkID string, methodID string,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s-%s] %s\n", checkID, methodID, target.Target)
+		fmt.Printf("[%s] %s\n", checkID, target.Target)
 	} else {
-		outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
-			outfile, target)
+		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
 	}
 
 }
 
 // execWebRequest is used to execute web requests on a specific target given the
-// relevant method
-func execWebRequest(target Target, checkID string, methodID string,
-	method MethodStruct, outfolder string) {
+// relevant check
+func execWebRequest(target Target, checkID string, checkDetails CheckStruct, 
+	outfolder string) {
 	// Read vars for processing
-	urls := method.Urls
-	httpMethod := method.HTTPMethod
-	regex := method.Regex
-	alertOnMissing := method.AlertOnMissing
-	mheaders := method.Headers
-	mbody := method.Body
-	outfile := method.Outfile
-	writeToOutfileFlag := method.WriteToOutfile
+	urls := checkDetails.Urls
+	httpMethod := checkDetails.HTTPMethod
+	regex := checkDetails.Regex
+	alertOnMissing := checkDetails.AlertOnMissing
+	mheaders := checkDetails.Headers
+	mbody := checkDetails.Body
+	outfile := checkDetails.Outfile
+	writeToOutfileFlag := checkDetails.WriteToOutfile
 
 	totalOut := ""
 
@@ -323,7 +319,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 			httpMethod = "GET"
 		}
 
-		// Currently, we only support specific methods
+		// Currently, we only support specific HTTP methods
 		if (httpMethod != "GET") && (httpMethod != "POST") {
 			log.Printf("[-] Unsupported HTTP method: %s\n", httpMethod)
 			break
@@ -395,10 +391,10 @@ func execWebRequest(target Target, checkID string, methodID string,
 
 			// If matching regex found, then print the result
 			if shouldNotify(requestOut, regex, alertOnMissing) {
-				fmt.Printf("[%s-%s] %s\n", checkID, methodID, urlToCheckSub)
+				fmt.Printf("[%s] %s\n", checkID, urlToCheckSub)
 			} else {
-				outfile = generateOutfile(checkID, methodID, writeToOutfileFlag,
-					outfile, target)
+				outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, 
+					target)
 				writeToOutfile(outfile, outfolder, totalOut, target)
 			}
 
@@ -408,7 +404,7 @@ func execWebRequest(target Target, checkID string, methodID string,
 }
 
 // execNotes is used to print the notes given the target and the method details
-func execNotes(target *Target, method *MethodStruct) {
+/*func execNotes(target *Target, method *MethodStruct) {
 	// Read the necessary variables to print notes
 	notes := method.Notes
 	log.Println("[!] Notes:")
@@ -417,4 +413,4 @@ func execNotes(target *Target, method *MethodStruct) {
 		noteToPrint := subTargetParams(note, *target)
 		log.Println("[!] " + noteToPrint)
 	}
-}
+}*/

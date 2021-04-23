@@ -24,20 +24,12 @@ type Target struct {
 // CheckToExec is the method, check to execute
 type CheckToExec struct {
 	CheckID  string
-	MethodID string
 	Target   Target
-	Method   MethodStruct
-}
-
-// CheckStruct is a Single check from the Checksfile
-type CheckStruct struct {
-	ID      string         `yaml:"id"`
-	Methods []MethodStruct `yaml:"methods"`
+	CheckDetails  CheckStruct
 }
 
 // MethodStruct is the method to deploy in method
-type MethodStruct struct {
-	ID         string   `yaml:"id"`
+type CheckStruct struct {
 	Type       string   `yaml:"type"`
 	Cmds       []string `yaml:"cmd"`
 	CmdDir     string   `yaml:"cmddir"`
@@ -63,6 +55,6 @@ type MethodStruct struct {
 }
 
 // ChecksFileStruct defines the structure of the Checks file (in YAML)
-type ChecksFileStruct struct {
-	Checks []CheckStruct `yaml:"checks"`
+type CheckFileStruct struct {
+	Check CheckStruct `yaml:"check"`
 }

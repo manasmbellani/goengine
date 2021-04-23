@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -66,10 +67,18 @@ func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
 	}
 }
 
+// parseCheckFiles is used to parse the check file one by one
+func parseCheckFiles(checkFiles []string, allChecks map[string]CheckStruct) {
+	for _, checkFile := range checkFiles {
+		checkStruct := parseCheckFile(checkFile)
+		allChecks[checkFile] = checkStruct
+	}
+}
+
 // Parse the Checks file to a structure that we can read from
-func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
-	var checksFileStruct ChecksFileStruct
-	yamlFile, err := ioutil.ReadFile(checksFile)
+func parseCheckFile(checkFile string) CheckStruct {
+	var checksFileStruct CheckStruct
+	yamlFile, err := ioutil.ReadFile(checkFile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -78,7 +87,7 @@ func parseChecksFile(checksFile string, allchecks *[]CheckStruct) {
 		log.Fatalf("Unmarshal: %v", err)
 	}
 
-	*allchecks = checksFileStruct.Checks
+	return checksFileStruct
 }
 
 // execChecksWorkers executes the checks
@@ -94,11 +103,10 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 
 				// Execute the method based on the target
 				target := checkToExec.Target
-				method := checkToExec.Method
+				checkDetails := checkToExec.CheckDetails
 				checkID := checkToExec.CheckID
-				methodID := checkToExec.MethodID
-				execMethod(target, checkID, methodID, method, outfolder,
-					browserPath, extensionsToExclude)
+				execCheck(target, checkID, checkDetails, outfolder, browserPath,
+					extensionsToExclude)
 			}
 		}()
 	}
@@ -106,34 +114,19 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 
 // prepareChecksToExecWorkers is used to prepare the checks to execute and also
 // determine whether a check should be executed or not (based on glob user input)
-func prepareChecksToExecWorkers(allChecks []CheckStruct,
-	targets []Target, checksToExec chan CheckToExec,
-	checkIDsToExec string, methodIDsToExec string) {
+func prepareChecksToExecWorkers(allChecks map[string]CheckStruct,
+	targets []Target, checksToExec chan CheckToExec) {
 
 	// Loop through each check and determine if check needs to be exec
-	for _, check := range allChecks {
-		checkID := check.ID
-		if shouldExecCheck(checkID, checkIDsToExec) {
-
-			// Check if the method needs to be executed
-			methods := check.Methods
-			for _, method := range methods {
-				methodID := method.ID
-				if shouldExecCheck(methodID, methodIDsToExec) {
-					// Add target and method info as a check to execute
-					// listing
-					for _, t := range targets {
-						var checkToExec CheckToExec
-						checkToExec.CheckID = checkID
-						checkToExec.MethodID = methodID
-						checkToExec.Target = t
-						checkToExec.Method = method
-						log.Printf("[*] Added check: %s, method: %s for target: %s to checksToExec\n",
-							checkID, methodID, t)
-						checksToExec <- checkToExec
-					}
-				}
-			}
+	for checkID, checkDetails := range allChecks {
+		for _, t := range targets {
+			var checkToExec CheckToExec
+			checkToExec.CheckID = checkID
+			checkToExec.CheckDetails = checkDetails
+			checkToExec.Target = t			
+			log.Printf("[*] Added check ID: %s for target: %s to checksToExec\n",
+				checkID, t)
+			checksToExec <- checkToExec
 		}
 	}
 }
@@ -160,18 +153,74 @@ func containsGlobPattern(inp string, match string) bool {
 	return success
 }
 
+// getCheckFiles gets the list of checks files
+func getCheckFiles(checksFolder string) []string {
+	var checkFiles []string
+	fi, err := os.Stat(checksFolder)
+	if os.IsNotExist(err) {
+		log.Printf("[-] Checks folder: %s does not exist\n", checksFolder)
+	} else {
+		mode := fi.Mode()
+		if mode.IsRegular() {
+			// Folder is actually a single file, let's parse that
+			checkFile := checksFolder
+			checkFiles = append(checkFiles, checkFile)
+		} else if mode.IsDir() {
+			// Parse all the files in the folder
+			err = filepath.Walk(checksFolder,
+				func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+					fi, err := os.Stat(path)
+					if err != nil {
+						log.Fatalf("Error getting path info: %s\n", err.Error())
+						return err
+					}
+
+					// Add the files for monitoring 
+					mode := fi.Mode()
+					if mode.IsRegular() {
+						checkFiles = append(checkFiles, path)
+					}
+					return nil
+				},
+			)
+			if err != nil {
+				log.Fatalf("Error walking the directory: %s. Err: %s\n", checksFolder, 
+					err.Error())
+			}
+		} else {
+			log.Fatalf("Path: %s is neither file, nor directory", checksFolder)
+		}
+	}
+
+	return checkFiles
+}
+
+// getCheckFilesToExec determines whether a check should be executed
+func getCheckFilesToExec(allCheckFiles []string, checkIDsToExec string) []string {
+	var checkFilesToExec []string
+	for _, checkFile := range allCheckFiles {
+		log.Printf("[*] Appended checkfile: %s for processing", checkFile)
+		if shouldExecCheck(checkFile, checkIDsToExec) {
+			checkFilesToExec = append(checkFilesToExec, checkFile)
+		}
+	}
+	return checkFilesToExec
+}
+
 func main() {
-	var checksFile string
+	var checksFolder string
 	var numThreads int
 	var numThreadsNT int
 	var checkIDsToExec string
-	var methodIDsToExec string
 	var outfolder string
 	var extensionsToExclude string
 	var quiet bool
-	flag.StringVar(&checksFile, "f", "vulnreview.yaml", "Checks File in YAML")
+
+	flag.StringVar(&checksFolder, "f", "vulnreview.yaml", "Checks File in YAML")
 	flag.StringVar(&checkIDsToExec, "c", "all", "Checks to execute")
-	flag.StringVar(&methodIDsToExec, "m", "all", "Methods to execute")
 	flag.IntVar(&numThreads, "numThreads", 50,
 		"Number of threads for vuln scanning")
 	flag.IntVar(&numThreadsNT, "numThreadsNT", 4,
@@ -185,8 +234,8 @@ func main() {
 	flag.Parse()
 
 	// Signature file should be found
-	if _, err := os.Stat(checksFile); os.IsNotExist(err) {
-		log.Fatalf("Checks File: %s does not exist\n", checksFile)
+	if _, err := os.Stat(checksFolder); os.IsNotExist(err) {
+		log.Fatalf("Checks Files/folder: %s does not exist\n", checksFolder)
 	}
 
 	// Quiet mode
@@ -195,9 +244,22 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 
-	// Parse the checks file and end
-	var allchecks []CheckStruct
-	parseChecksFile(checksFile, &allchecks)
+	// Determine the local browser
+	browserPath := locateBrowserPath()
+	if browserPath == "" {
+		log.Printf("[-] Browser not found to run browser checks")
+	}
+
+	var allChecks map[string]CheckStruct
+
+	// Parse the checks file
+	allChecksFiles := getCheckFiles(checksFolder)
+
+	// Determine Checks File to execute
+	checksFiles := getCheckFilesToExec(allChecksFiles, checkIDsToExec)
+	
+	// Parse the checks file
+	parseCheckFiles(checksFiles, allChecks)
 
 	// Create sync group for normalization of the targets, perparing checks to
 	// execute and executing the check
@@ -232,19 +294,12 @@ func main() {
 	close(rawTargets)
 	wgNT.Wait()
 
-	// Determine the local browser
-	browserPath := locateBrowserPath()
-	if browserPath == "" {
-		log.Printf("[-] Browser not found to run browser checks")
-	}
-
 	// Start workers to execute the checks
 	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder,
 		browserPath, extensionsToExclude, &wgEC)
 
 	// Prepare a list of the relevant checks to execute for each target
-	prepareChecksToExecWorkers(allchecks, targets, checksToExec, checkIDsToExec,
-		methodIDsToExec)
+	prepareChecksToExecWorkers(allChecks, targets, checksToExec)
 
 	close(checksToExec)
 
