@@ -71,7 +71,7 @@ func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
 func parseCheckFiles(checkFiles []string, allChecks map[string]CheckStruct) {
 	for _, checkFile := range checkFiles {
 		checkStruct := parseCheckFile(checkFile)
-		log.Printf("[v] checkFile: %s, checkStruct: %+v\n", checkFile, checkStruct)
+		//log.Printf("[v] checkFile: %s, checkStruct: %+v\n", checkFile, checkStruct)
 		allChecks[checkFile] = checkStruct
 	}
 }

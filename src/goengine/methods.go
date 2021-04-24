@@ -32,7 +32,7 @@ const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 func execCheck(target Target, checkID string, checkDetails CheckStruct,
 	outfolder string, browserPath string, extensionsToExclude string) {
 	
-	log.Printf("[v] checkDetails: %+v", checkDetails)
+	//log.Printf("[v] checkDetails: %+v", checkDetails)
 	checkType := checkDetails.Type
 
 	log.Printf("[*] Executing checkID: %s of type: %s on target: %+v\n",
