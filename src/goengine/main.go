@@ -78,6 +78,7 @@ func parseCheckFiles(checkFiles []string, allChecks map[string]CheckStruct) {
 // Parse the Checks file to a structure that we can read from
 func parseCheckFile(checkFile string) CheckStruct {
 	var checksFileStruct CheckStruct
+	log.Printf("[*] Parsing check file: %s\n", checkFile)
 	yamlFile, err := ioutil.ReadFile(checkFile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
@@ -156,6 +157,7 @@ func containsGlobPattern(inp string, match string) bool {
 // getCheckFiles gets the list of checks files
 func getCheckFiles(checksFolder string) []string {
 	var checkFiles []string
+	log.Printf("Listing files in path: %s\n", checksFolder)
 	fi, err := os.Stat(checksFolder)
 	if os.IsNotExist(err) {
 		log.Printf("[-] Checks folder: %s does not exist\n", checksFolder)
@@ -172,6 +174,7 @@ func getCheckFiles(checksFolder string) []string {
 					if err != nil {
 						return err
 					}
+					//log.Printf("[v] path found: %s\n", path)
 					fi, err := os.Stat(path)
 					if err != nil {
 						log.Fatalf("Error getting path info: %s\n", err.Error())
@@ -181,6 +184,7 @@ func getCheckFiles(checksFolder string) []string {
 					// Add the files for monitoring 
 					mode := fi.Mode()
 					if mode.IsRegular() {
+						//log.Printf("[v] file found: %s\n", path)
 						checkFiles = append(checkFiles, path)
 					}
 					return nil
@@ -195,14 +199,17 @@ func getCheckFiles(checksFolder string) []string {
 		}
 	}
 
+	log.Printf("Number of files in path: %s: %d\n", checksFolder, len(checkFiles))
+
 	return checkFiles
 }
 
 // getCheckFilesToExec determines whether a check should be executed
 func getCheckFilesToExec(allCheckFiles []string, checkIDsToExec string) []string {
 	var checkFilesToExec []string
+	log.Printf("Getting files to parse based on criteria: %s\n", checkIDsToExec)
 	for _, checkFile := range allCheckFiles {
-		log.Printf("[*] Appended checkfile: %s for processing", checkFile)
+		log.Printf("[*] Appended checkfile: %s for parsing", checkFile)
 		if shouldExecCheck(checkFile, checkIDsToExec) {
 			checkFilesToExec = append(checkFilesToExec, checkFile)
 		}
@@ -250,7 +257,8 @@ func main() {
 		log.Printf("[-] Browser not found to run browser checks")
 	}
 
-	var allChecks map[string]CheckStruct
+	// Contains all the check details to execute
+	allChecks := make(map[string]CheckStruct)
 
 	// Parse the checks file
 	allChecksFiles := getCheckFiles(checksFolder)
