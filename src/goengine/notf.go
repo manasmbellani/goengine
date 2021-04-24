@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -52,11 +53,20 @@ func writeToOutfile(outfile string, outfolder string, out string, target Target)
 	}
 }
 
+// fileNameWithoutExtension generates file name without extension from path
+func fileNameWithoutExtension(filePath string) string {
+	fileName := path.Base(filePath)
+	return fileName[:len(fileName) - len(filepath.Ext(fileName))]
+}
+
 // generateOutfile is used to generate the output file name
 func generateOutfile(checkID string, writeToOutfile bool,
 	outfileCheck string, target Target) string {
 
 	outfile := ""
+	
+	// Get the name of the check for preparing filename
+	checkName := fileNameWithoutExtension(checkID)
 
 	if outfileCheck != "" {
 		outfile = outfileCheck
@@ -66,17 +76,17 @@ func generateOutfile(checkID string, writeToOutfile bool,
 			// Build the file name replacing disallowed characters with '_'
 			folder_name := strings.ReplaceAll(target.Folder, "/", "_")
 			folder_name = strings.ReplaceAll(folder_name, "\\", "_")
-			outfile = fmt.Sprintf("%s-%s-%s.%s", OutfilePrefix, checkID,
+			outfile = fmt.Sprintf("%s-%s-%s.%s", OutfilePrefix, checkName,
 				folder_name, OutfileExtn)
 		} else if protocol == "aws" {
-			outfile = fmt.Sprintf("%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID,
+			outfile = fmt.Sprintf("%s-%s-%s-%s.%s", OutfilePrefix, checkName,
 				target.AWSProfile, target.AWSRegion, OutfileExtn)
 		} else if protocol == "gcp" || protocol == "gcloud" {
-			outfile = fmt.Sprintf("%s-%s-%s-%s-%s-%s.%s", OutfilePrefix, checkID,
+			outfile = fmt.Sprintf("%s-%s-%s-%s-%s-%s.%s", OutfilePrefix, checkName,
 				target.GCPAccount, target.GCPProject, target.GCPRegion, target.GCPZone,
 				OutfileExtn)
 		} else {
-			outfile = fmt.Sprintf("%s-%s-%s.%s", OutfilePrefix, checkID,
+			outfile = fmt.Sprintf("%s-%s-%s.%s", OutfilePrefix, checkName,
 				target.Host, OutfileExtn)
 		}
 	} else {

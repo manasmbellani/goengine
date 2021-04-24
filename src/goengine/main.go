@@ -71,24 +71,25 @@ func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
 func parseCheckFiles(checkFiles []string, allChecks map[string]CheckStruct) {
 	for _, checkFile := range checkFiles {
 		checkStruct := parseCheckFile(checkFile)
+		log.Printf("[v] checkFile: %s, checkStruct: %+v\n", checkFile, checkStruct)
 		allChecks[checkFile] = checkStruct
 	}
 }
 
 // Parse the Checks file to a structure that we can read from
 func parseCheckFile(checkFile string) CheckStruct {
-	var checksFileStruct CheckStruct
+	var checkFileStruct CheckFileStruct
 	log.Printf("[*] Parsing check file: %s\n", checkFile)
 	yamlFile, err := ioutil.ReadFile(checkFile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-	err = yaml.Unmarshal(yamlFile, &checksFileStruct)
+	err = yaml.Unmarshal(yamlFile, &checkFileStruct)
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
 
-	return checksFileStruct
+	return checkFileStruct.Check
 }
 
 // execChecksWorkers executes the checks
@@ -125,7 +126,7 @@ func prepareChecksToExecWorkers(allChecks map[string]CheckStruct,
 			checkToExec.CheckID = checkID
 			checkToExec.CheckDetails = checkDetails
 			checkToExec.Target = t			
-			log.Printf("[*] Added check ID: %s for target: %s to checksToExec\n",
+			log.Printf("[*] Added check ID: %s for target: %+v to checksToExec\n",
 				checkID, t)
 			checksToExec <- checkToExec
 		}
@@ -209,8 +210,8 @@ func getCheckFilesToExec(allCheckFiles []string, checkIDsToExec string) []string
 	var checkFilesToExec []string
 	log.Printf("Getting files to parse based on criteria: %s\n", checkIDsToExec)
 	for _, checkFile := range allCheckFiles {
-		log.Printf("[*] Appended checkfile: %s for parsing", checkFile)
 		if shouldExecCheck(checkFile, checkIDsToExec) {
+			log.Printf("[*] Appended checkfile: %s for parsing", checkFile)
 			checkFilesToExec = append(checkFilesToExec, checkFile)
 		}
 	}

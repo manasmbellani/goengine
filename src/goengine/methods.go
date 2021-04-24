@@ -31,7 +31,8 @@ const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 // execCheck is generallly used to execute particular commands
 func execCheck(target Target, checkID string, checkDetails CheckStruct,
 	outfolder string, browserPath string, extensionsToExclude string) {
-
+	
+	log.Printf("[v] checkDetails: %+v", checkDetails)
 	checkType := checkDetails.Type
 
 	log.Printf("[*] Executing checkID: %s of type: %s on target: %+v\n",
@@ -388,6 +389,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 			// Combine status code, response headers and body
 			requestOut := fmt.Sprintf("%d\n%s\n%s\n", statusCode,
 				respHeadersStr, respBody)
+			
 
 			// If matching regex found, then print the result
 			if shouldNotify(requestOut, regex, alertOnMissing) {
@@ -395,9 +397,10 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 			} else {
 				outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, 
 					target)
-				writeToOutfile(outfile, outfolder, totalOut, target)
+				writeToOutfile(outfile, outfolder, requestOut, target)
 			}
 
+			// Append to full output to be used later (if necessary)
 			totalOut += requestOut
 		}
 	}
