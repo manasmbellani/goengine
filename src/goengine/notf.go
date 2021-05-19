@@ -44,11 +44,11 @@ func writeToOutfile(outfile string, outfolder string, out string, target Target)
 		log.Printf("[*] Writing results to outfile: %s\n", outfileFullPath)
 		f, err := os.OpenFile(outfileFullPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Println("Error opening file: ", outfileFullPath, err)
+			log.Println("[*] Error opening file: ", outfileFullPath, err)
 		}
 		defer f.Close()
 		if _, err := f.WriteString(out); err != nil {
-			log.Println(err)
+			log.Println("[-] " + err.Error())
 		}
 	}
 }

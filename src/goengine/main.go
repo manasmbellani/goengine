@@ -59,7 +59,7 @@ func normalizeTargetWorkers(targets *[]Target, rawTargets chan string,
 				normalizeTarget(rawTarget, &target, outfolder)
 
 				// Print the information about the target
-				log.Printf("Added target: %+v to targets", target)
+				log.Printf("[*] Added target: %+v to targets", target)
 				*targets = append(*targets, target)
 
 			}
@@ -82,11 +82,11 @@ func parseCheckFile(checkFile string) CheckStruct {
 	log.Printf("[*] Parsing check file: %s\n", checkFile)
 	yamlFile, err := ioutil.ReadFile(checkFile)
 	if err != nil {
-		log.Printf("yamlFile.Get err   #%v ", err)
+		log.Printf("[-] yamlFile.Get err   #%v ", err)
 	}
 	err = yaml.Unmarshal(yamlFile, &checkFileStruct)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		log.Fatalf("[-] Unmarshal: %v", err)
 	}
 
 	return checkFileStruct.Check
@@ -158,7 +158,7 @@ func containsGlobPattern(inp string, match string) bool {
 // getCheckFiles gets the list of checks files
 func getCheckFiles(checksFolder string) []string {
 	var checkFiles []string
-	log.Printf("Listing files in path: %s\n", checksFolder)
+	log.Printf("[*] Listing files in path: %s\n", checksFolder)
 	fi, err := os.Stat(checksFolder)
 	if os.IsNotExist(err) {
 		log.Printf("[-] Checks folder: %s does not exist\n", checksFolder)
@@ -200,7 +200,7 @@ func getCheckFiles(checksFolder string) []string {
 		}
 	}
 
-	log.Printf("Number of files in path: %s: %d\n", checksFolder, len(checkFiles))
+	log.Printf("[*] Number of files in path: %s: %d\n", checksFolder, len(checkFiles))
 
 	return checkFiles
 }
@@ -208,7 +208,7 @@ func getCheckFiles(checksFolder string) []string {
 // getCheckFilesToExec determines whether a check should be executed
 func getCheckFilesToExec(allCheckFiles []string, checkIDsToExec string) []string {
 	var checkFilesToExec []string
-	log.Printf("Getting files to parse based on criteria: %s\n", checkIDsToExec)
+	log.Printf("[*] Getting files to parse based on criteria: %s\n", checkIDsToExec)
 	for _, checkFile := range allCheckFiles {
 		if shouldExecCheck(checkFile, checkIDsToExec) {
 			log.Printf("[*] Appended checkfile: %s for parsing", checkFile)
@@ -216,6 +216,39 @@ func getCheckFilesToExec(allCheckFiles []string, checkIDsToExec string) []string
 		}
 	}
 	return checkFilesToExec
+}
+
+func usage() {
+	script := os.Args[0]
+	usage := `
+Summary:
+	goengine is used to execute 
+
+Examples:
+	For recon on company google via crobat, run command:
+		echo recon://google.com:google | %[1]s -f ./auto -c crobat
+
+	For code review on php code in folder /tmp, run the command:
+		echo folder:///tmp | %[1]s -f ./auto -c php
+
+	For AWS cloud scanning on profile 'my_profile' in region ap-southeast-2, run the 
+	command:
+		echo aws://my_profile:ap-southeast-2 | %[1]s -f ./auto -c aws
+
+	For GCP cloud scanning on account 'gcp_account', run the 
+	command:
+		echo gcp://gcp_account:gcp_project:gcp_region:gcp_zone | %[1]s -f ./auto -c gcp
+
+	For performing low hanging checks on domain google.com, and company google,
+	run the command:
+		echo lowhanging:///google.com:google | %[1]s -f ./auto -c kibana
+	
+	For performing vulnerability scanning checks e.g. ssh, run the command:
+		echo ssh://domain | %[1]s -f ./auto -c ssh
+`
+	fmt.Printf(usage, script)
+
+	flag.PrintDefaults()
 }
 
 func main() {
@@ -227,7 +260,9 @@ func main() {
 	var extensionsToExclude string
 	var quiet bool
 
-	flag.StringVar(&checksFolder, "f", "vulnreview.yaml", "Checks File in YAML")
+	flag.Usage = usage
+
+	flag.StringVar(&checksFolder, "f", "", "Checks File/Folder in YAML")
 	flag.StringVar(&checkIDsToExec, "c", "all", "Checks to execute")
 	flag.IntVar(&numThreads, "numThreads", 50,
 		"Number of threads for vuln scanning")
@@ -240,6 +275,11 @@ func main() {
 	flag.BoolVar(&quiet, "q", false,
 		"Execute in quiet mode so no verbose messages are printed")
 	flag.Parse()
+
+	// Check if the file/folder is provided
+	if checksFolder == "" {
+		log.Fatalf("Checks file/folder must be provided")
+	}
 
 	// Signature file should be found
 	if _, err := os.Stat(checksFolder); os.IsNotExist(err) {

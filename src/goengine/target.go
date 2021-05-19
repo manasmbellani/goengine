@@ -13,7 +13,7 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 	rawTargetParts := strings.Split(rawTarget, "://")
 	var rawTargetWithoutProtocol string
 	if len(rawTargetParts) < 2 {
-		log.Fatalf("rawTarget must follow format protocol://....")
+		log.Fatalf("[-] rawTarget must follow format protocol://....")
 	} else {
 		rawTargetWithoutProtocol = strings.Split(rawTarget, "://")[1]
 	}
@@ -35,7 +35,7 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 		// Parse AWS account information - Profile/region
 		targetParts := strings.Split(rawTargetWithoutProtocol, ":")
 		if len(targetParts) < 2 {
-			log.Fatalf("AWS target spec: aws://<aws_profile>:<aws_region>")
+			log.Fatalf("[-] AWS target spec: aws://<aws_profile>:<aws_region>")
 		} else {
 			target.AWSProfile = targetParts[0]
 			target.AWSRegion = targetParts[1]
@@ -45,7 +45,7 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 		// zone
 		targetParts := strings.Split(rawTargetWithoutProtocol, ":")
 		if len(targetParts) < 4 {
-			log.Fatalf("GCP target spec: gcp://<gcp_account>:<gcp_project>:<gcp_region>:<gcp_zone>")
+			log.Fatalf("[-] GCP target spec: gcp://<gcp_account>:<gcp_project>:<gcp_region>:<gcp_zone>")
 		} else {
 			target.GCPAccount = targetParts[0]
 			target.GCPProject = targetParts[1]
@@ -62,7 +62,7 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 		// Parse as URL
 		u, err := url.Parse(rawTarget)
 		if err != nil {
-			log.Printf("Error parsing target: %s as URL. Error: %s\n", rawTarget, err)
+			log.Printf("[-] Error parsing target: %s as URL. Error: %s\n", rawTarget, err)
 		}
 		target.Target = rawTarget
 		target.Host = u.Host
