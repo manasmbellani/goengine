@@ -33,7 +33,7 @@ func openURLInBrowser(url string, browserPath string) {
 	if browserPath == "" {
 		log.Println("[-] Browser not found to open URL: ", url)
 	} else {
-		cmdToExec := fmt.Sprintf("\"%s\" \"%s\" 2>/dev/null 1>/dev/null &",
+		cmdToExec := fmt.Sprintf("\"%s\" '%s' 2>/dev/null 1>/dev/null &",
 			browserPath, url)
 		eCmd([]string{cmdToExec}, "")
 	}
