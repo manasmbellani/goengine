@@ -82,11 +82,11 @@ func parseCheckFile(checkFile string) CheckStruct {
 	log.Printf("[*] Parsing check file: %s\n", checkFile)
 	yamlFile, err := ioutil.ReadFile(checkFile)
 	if err != nil {
-		log.Printf("[-] yamlFile.Get err   #%v ", err)
+		log.Printf("[-] yamlFile.Get err in file: %s. Err: #%v ", checkFile, err)
 	}
 	err = yaml.Unmarshal(yamlFile, &checkFileStruct)
 	if err != nil {
-		log.Fatalf("[-] Unmarshal: %v", err)
+		log.Fatalf("[-] Unmarshal err in file: %s. Err: %v", checkFile, err)
 	}
 
 	return checkFileStruct.Check

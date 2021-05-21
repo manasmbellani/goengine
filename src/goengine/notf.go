@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -18,6 +17,12 @@ const OutfilePrefix = "out"
 
 // OutfileExtn is the extension for the outfile
 const OutfileExtn = "txt"
+
+// Get filename without extension
+func fileNameWithoutExtension(filePath string) string {
+	fileName := filepath.Base(filePath)
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
 
 // shouldNotify is used to send notification based on input line and regex
 func shouldNotify(out string, regex string, alertOnMissing bool) bool {
@@ -33,6 +38,14 @@ func shouldNotify(out string, regex string, alertOnMissing bool) bool {
 		}
 	}
 	return found
+}
+
+// generateStdOutNotification writes a message on STDOUT
+func generateStdOutNotification(checkType, checkID, asset string) {
+	// checkID is currently a full file path so we replace it with just the 
+	// filename 
+	checkIDShort := fileNameWithoutExtension(checkID)
+	fmt.Printf("[%s] %s\n", checkIDShort, asset)
 }
 
 func writeToOutfile(outfile string, outfolder string, out string, target Target) {
@@ -51,12 +64,6 @@ func writeToOutfile(outfile string, outfolder string, out string, target Target)
 			log.Println("[-] " + err.Error())
 		}
 	}
-}
-
-// fileNameWithoutExtension generates file name without extension from path
-func fileNameWithoutExtension(filePath string) string {
-	fileName := path.Base(filePath)
-	return fileName[:len(fileName) - len(filepath.Ext(fileName))]
 }
 
 // generateOutfile is used to generate the output file name

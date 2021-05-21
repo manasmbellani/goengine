@@ -28,7 +28,7 @@ const ShodanSearchTemplateURL = "https://www.shodan.io/search?query="
 // GoogleSearchTemplateURL is the Google URL search template
 const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 
-// execCheck is generallly used to execute particular commands
+// execCheck is generally used to execute particular commands
 func execCheck(target Target, checkID string, checkDetails CheckStruct,
 	outfolder string, browserPath string, extensionsToExclude string) {
 	
@@ -183,7 +183,7 @@ func execCmd(target Target, checkID string, checkDetails CheckStruct,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s] %s\n", checkID, target.Target)
+		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
@@ -217,7 +217,7 @@ func execAWSCLICmd(target Target, checkID string, checkDetails CheckStruct,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s] %s\n", checkID, target.Target)
+		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
@@ -249,7 +249,7 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s] %s\n", checkID, target.Target)
+		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
@@ -281,7 +281,7 @@ func execBQCmd(target Target, checkID string, checkDetails CheckStruct,
 
 	// If matching regex found, then print the result
 	if shouldNotify(totalOut, regex, alertOnMissing) {
-		fmt.Printf("[%s] %s\n", checkID, target.Target)
+		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
 		writeToOutfile(outfile, outfolder, totalOut, target)
@@ -393,7 +393,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 
 			// If matching regex found, then print the result
 			if shouldNotify(requestOut, regex, alertOnMissing) {
-				fmt.Printf("[%s] %s\n", checkID, urlToCheckSub)
+				generateStdOutNotification(checkDetails.Type, checkID, urlToCheckSub)
 			} else {
 				outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, 
 					target)

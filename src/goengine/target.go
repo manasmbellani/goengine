@@ -66,6 +66,10 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 		}
 		target.Target = rawTarget
 		target.Host = u.Host
+		if strings.Contains(u.Host, ":") {
+			// If the host contains port, then ignore it
+			target.Host = strings.Split(u.Host, ":")[0]
+		}
 		target.Port = u.Port()
 		if target.Protocol == "" {
 			target.Protocol = DefProtocol
@@ -79,6 +83,7 @@ func normalizeTarget(rawTarget string, target *Target, outfolder string) {
 				target.Port = DefPort
 			}
 		}
+		
 		target.Path = target.Protocol + "://" + target.Host + ":" + target.Port + u.Path
 		queryMap := u.Query()
 		var qm []string
