@@ -390,6 +390,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 			requestOut := fmt.Sprintf("%d\n%s\n%s\n", statusCode,
 				respHeadersStr, respBody)
 			
+			//fmt.Println(requestOut)
 
 			// If matching regex found, then print the result
 			if shouldNotify(requestOut, regex, alertOnMissing) {
