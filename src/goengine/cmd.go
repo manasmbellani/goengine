@@ -15,7 +15,7 @@ func eCmd(cmds []string, cmdDir string) string {
 	// Check if cmddir exists - otherwise, cannot execute anything
 	if cmdDir != "" {
 		if _, err := os.Stat(cmdDir); os.IsNotExist(err) {
-			log.Printf("[-] Dir Path: %s not found", cmdDir)
+			log.Fatalf("[-] Dir Path: %s not found", cmdDir)
 		}
 	}
 
