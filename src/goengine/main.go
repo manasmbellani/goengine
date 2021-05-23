@@ -235,9 +235,9 @@ Examples:
 	command:
 		echo aws://my_profile:ap-southeast-2 | %[1]s -f ./auto -c aws
 
-	For GCP cloud scanning on account 'gcp_account', run the 
-	command:
+	For GCP cloud scanning on account 'gcp_account', run the command:
 		echo gcp://gcp_account:gcp_project:gcp_region:gcp_zone | %[1]s -f ./auto -c gcp
+		echo gcloud://gcp_account:gcp_project:gcp_region:gcp_zone | %[1]s -f ./auto -c gcp
 
 	For performing low hanging checks on domain google.com, and company google,
 	run the command:
