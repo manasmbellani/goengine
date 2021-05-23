@@ -237,7 +237,21 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 	outfile := checkDetails.Outfile
 	writeToOutfileFlag := checkDetails.WriteToOutfile
 
-	// Convert commands to AWS Commands
+	// Set the default configuration before running the gcloud command
+	gcloudConfigCmdsTemplate := []string{
+		"config set project {gcp_project}",
+		"config set compute/region {gcp_region}",
+		"config set compute/zone {gcp_zone}",
+		"config set account {gcp_account}",
+	}
+	var gcloudConfigCmds []string
+	for _, cmd := range gcloudConfigCmdsTemplate {
+		gcloudConfigCmd := subTargetParams("gcloud "+cmd, target)
+		gcloudConfigCmds = append(gcloudConfigCmds,  gcloudConfigCmd)
+	}
+	eCmd(gcloudConfigCmds, cmdDir)
+
+	// Convert actual commands to run to GCP Commands
 	var gcloudCmds []string
 	for _, cmd := range cmds {
 		gcloudCmd := subTargetParams("gcloud "+cmd, target)
@@ -390,7 +404,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 			requestOut := fmt.Sprintf("%d\n%s\n%s\n", statusCode,
 				respHeadersStr, respBody)
 			
-			//fmt.Println(requestOut)
+			fmt.Println(requestOut)
 
 			// If matching regex found, then print the result
 			if shouldNotify(requestOut, regex, alertOnMissing) {
