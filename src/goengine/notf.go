@@ -48,14 +48,19 @@ func generateStdOutNotification(checkType, checkID, asset string) {
 	fmt.Printf("[%s] %s\n", checkIDShort, asset)
 }
 
-func writeToOutfile(outfile string, outfolder string, out string, target Target) {
-	// Append the output to outfolder/outfile
+func writeToOutfile(outfile string, overwriteOutfiles bool, outfolder string, 
+	out string, target Target) {
+	// Append or overwrite the output in the outfolder/outfile
 	if outfile != "" {
 
 		outfileSub := subTargetParams(outfile, target)
 		outfileFullPath := filepath.Join(outfolder, outfileSub)
 		log.Printf("[*] Writing results to outfile: %s\n", outfileFullPath)
-		f, err := os.OpenFile(outfileFullPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		mode := os.O_APPEND|os.O_CREATE|os.O_WRONLY
+		if overwriteOutfiles {
+			mode = os.O_RDWR|os.O_CREATE|os.O_TRUNC
+		}
+		f, err := os.OpenFile(outfileFullPath, mode, 0644)
 		if err != nil {
 			log.Println("[*] Error opening file: ", outfileFullPath, err)
 		}

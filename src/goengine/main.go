@@ -95,7 +95,7 @@ func parseCheckFile(checkFile string) CheckStruct {
 // execChecksWorkers executes the checks
 func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 	numThreads int, outfolder string, browserPath string, extensionsToExclude string,
-	wg *sync.WaitGroup) {
+	overwriteOutfiles bool, wg *sync.WaitGroup) {
 	for i := 0; i < numThreads; i++ {
 		log.Printf("[*] Launching worker: %d for execChecksWorker\n", i)
 		wg.Add(1)
@@ -108,7 +108,7 @@ func execChecksWorkers(checksToExec chan CheckToExec, restyClient *resty.Client,
 				checkDetails := checkToExec.CheckDetails
 				checkID := checkToExec.CheckID
 				execCheck(target, checkID, checkDetails, outfolder, browserPath,
-					extensionsToExclude)
+					extensionsToExclude, overwriteOutfiles)
 			}
 		}()
 	}
@@ -258,6 +258,7 @@ func main() {
 	var checkIDsToExec string
 	var outfolder string
 	var extensionsToExclude string
+	var overwriteOutfiles bool
 	var quiet bool
 
 	flag.Usage = usage
@@ -274,6 +275,8 @@ func main() {
 		"Extensions to exclude when performing grep searches")
 	flag.BoolVar(&quiet, "q", false,
 		"Execute in quiet mode so no verbose messages are printed")
+	flag.BoolVar(&overwriteOutfiles, "oo", false,
+		"Overwrite the output files")
 	flag.Parse()
 
 	// Check if the file/folder is provided
@@ -345,7 +348,7 @@ func main() {
 
 	// Start workers to execute the checks
 	execChecksWorkers(checksToExec, restyClient, numThreads, outfolder,
-		browserPath, extensionsToExclude, &wgEC)
+		browserPath, extensionsToExclude, overwriteOutfiles, &wgEC)
 
 	// Prepare a list of the relevant checks to execute for each target
 	prepareChecksToExecWorkers(allChecks, targets, checksToExec)

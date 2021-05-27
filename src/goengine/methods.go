@@ -30,7 +30,8 @@ const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 
 // execCheck is generally used to execute particular commands
 func execCheck(target Target, checkID string, checkDetails CheckStruct,
-	outfolder string, browserPath string, extensionsToExclude string) {
+	outfolder string, browserPath string, extensionsToExclude string,
+	overwriteOutfiles bool) {
 	
 	//log.Printf("[v] checkDetails: %+v", checkDetails)
 	checkType := checkDetails.Type
@@ -38,20 +39,20 @@ func execCheck(target Target, checkID string, checkDetails CheckStruct,
 	log.Printf("[*] Executing checkID: %s of type: %s on target: %+v\n",
 		checkID, checkType, target)
 	if checkType == "cmd" {
-		execCmd(target, checkID, checkDetails, outfolder)
+		execCmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "aws" {
-		execAWSCLICmd(target, checkID, checkDetails, outfolder)
+		execAWSCLICmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "gcloud" {
-		execGCloudCmd(target, checkID, checkDetails, outfolder)
+		execGCloudCmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "bq" {
-		execBQCmd(target, checkID, checkDetails, outfolder)
+		execBQCmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "webrequest" {
-		execWebRequest(target, checkID, checkDetails, outfolder)
+		execWebRequest(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "grep" {
 		execGrepSearch(target, checkID, checkDetails, extensionsToExclude,
-			outfolder)
+			outfolder, overwriteOutfiles)
 	} else if checkType == "find" {
-		execFindSearch(target, checkID, checkDetails, outfolder)
+		execFindSearch(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "browser" || checkType == "webbrowser" {
 		execURLInBrowser(target, checkID, checkDetails, browserPath)
 	} else if checkType == "shodan" {
@@ -69,7 +70,7 @@ func execCheck(target Target, checkID string, checkDetails CheckStruct,
 // execCodeSearch is used to run the search in the folder via grep for specific
 // keywords
 func execGrepSearch(target Target, checkID string, checkDetails CheckStruct, 
-	extensionsToExclude string, outfolder string) {
+	extensionsToExclude string, outfolder string, overwriteOutfiles bool) {
 
 	keywords := checkDetails.Keywords
 	outfile := checkDetails.Outfile
@@ -92,7 +93,7 @@ func execGrepSearch(target Target, checkID string, checkDetails CheckStruct,
 
 		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
-		writeToOutfile(outfile, outfolder, totalOut, target)
+		writeToOutfile(outfile, overwriteOutfiles, outfolder, totalOut, target)
 	}
 }
 
@@ -141,7 +142,7 @@ func execGoogleSearchInBrowser(target Target, checkID string, checkDetails Check
 
 // execCodeSearch is used to run the search on folder for specific files
 func execFindSearch(target Target, checkID string, checkDetails CheckStruct, 
-	outfolder string) {
+	outfolder string, overwriteOutfiles bool) {
 
 	files := checkDetails.Files
 	outfile := checkDetails.Outfile
@@ -156,13 +157,13 @@ func execFindSearch(target Target, checkID string, checkDetails CheckStruct,
 
 		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
-		writeToOutfile(outfile, outfolder, totalOut, target)
+		writeToOutfile(outfile, overwriteOutfiles, outfolder, totalOut, target)
 	}
 }
 
 // execCmd is used to execute shell commands and return the results
 func execCmd(target Target, checkID string, checkDetails CheckStruct, 
-	outfolder string) {
+	outfolder string, overwriteOutfiles bool) {
 
 	// Read the necessary variables to execute
 	cmdDir := checkDetails.CmdDir
@@ -187,14 +188,14 @@ func execCmd(target Target, checkID string, checkDetails CheckStruct,
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag,
 			outfile, target)
-		writeToOutfile(outfile, outfolder, totalOut, target)
+		writeToOutfile(outfile, overwriteOutfiles, outfolder, totalOut, target)
 	}
 
 }
 
 // execAWSCmd is used to execute AWSCLI commands and return the results
 func execAWSCLICmd(target Target, checkID string, checkDetails CheckStruct, 
-	outfolder string) {
+	outfolder string, overwriteOutfiles bool) {
 
 	// Read the necessary variables to execute
 	cmdDir := checkDetails.CmdDir
@@ -220,14 +221,14 @@ func execAWSCLICmd(target Target, checkID string, checkDetails CheckStruct,
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
-		writeToOutfile(outfile, outfolder, totalOut, target)
+		writeToOutfile(outfile, overwriteOutfiles, outfolder, totalOut, target)
 	}
 
 }
 
 // execGCloudCmd is used to execute shell commands with gcloud and return results
 func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct, 
-	outfolder string) {
+	outfolder string, overwriteOutfiles bool) {
 
 	// Read the necessary variables to execute
 	cmdDir := checkDetails.CmdDir
@@ -266,14 +267,14 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
-		writeToOutfile(outfile, outfolder, totalOut, target)
+		writeToOutfile(outfile, overwriteOutfiles, outfolder, totalOut, target)
 	}
 
 }
 
 // execBQCmd is used to execute shell commands with gcloud and return results
 func execBQCmd(target Target, checkID string, checkDetails CheckStruct, 
-	outfolder string) {
+	outfolder string, overwriteOutfiles bool) {
 
 	// Read the necessary variables to execute
 	cmdDir := checkDetails.CmdDir
@@ -298,7 +299,7 @@ func execBQCmd(target Target, checkID string, checkDetails CheckStruct,
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
-		writeToOutfile(outfile, outfolder, totalOut, target)
+		writeToOutfile(outfile, overwriteOutfiles, outfolder, totalOut, target)
 	}
 
 }
@@ -306,7 +307,7 @@ func execBQCmd(target Target, checkID string, checkDetails CheckStruct,
 // execWebRequest is used to execute web requests on a specific target given the
 // relevant check
 func execWebRequest(target Target, checkID string, checkDetails CheckStruct, 
-	outfolder string) {
+	outfolder string, overwriteOutfiles bool) {
 	// Read vars for processing
 	urls := checkDetails.Urls
 	httpMethod := checkDetails.HTTPMethod
@@ -412,7 +413,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 			} else {
 				outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, 
 					target)
-				writeToOutfile(outfile, outfolder, requestOut, target)
+				writeToOutfile(outfile, overwriteOutfiles, outfolder, requestOut, target)
 			}
 
 			// Append to full output to be used later (if necessary)
