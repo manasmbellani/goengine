@@ -50,6 +50,7 @@ type CheckStruct struct {
 	Searches       []string `yaml:"search"`
 	WriteToOutfile bool     `yaml:"writetofile"`
 	Regex          string   `yaml:"regex"`
+	NoRegex        string   `yaml:"noregex"`
 	AlertOnMissing bool     `yaml:"alertonmissing"`
 	Notes          string   `yaml:"notes"`
 }

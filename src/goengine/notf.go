@@ -25,16 +25,21 @@ func fileNameWithoutExtension(filePath string) string {
 }
 
 // shouldNotify is used to send notification based on input line and regex
-func shouldNotify(out string, regex string, alertOnMissing bool) bool {
+func shouldNotify(out string, regex string, noregex string, 
+	alertOnMissing bool) bool {
 	found := false
 	if regex != "" {
 		outWithoutNewLines := strings.ReplaceAll(out, "\n", NewLineReplacement)
 		outWithoutNewLines = strings.ReplaceAll(outWithoutNewLines, "\r", NewLineReplacement)
-		foundMatch, _ := regexp.MatchString(regex, outWithoutNewLines)
+		foundRegexMatch, _ := regexp.MatchString(regex, outWithoutNewLines)
+		var foundNoRegexMatch bool
+		if noregex != "" {
+			foundNoRegexMatch, _ = regexp.MatchString(noregex, outWithoutNewLines)
+		}
 		if alertOnMissing {
-			found = !foundMatch
+			found = !(foundRegexMatch && !foundNoRegexMatch)
 		} else {
-			found = foundMatch
+			found = (foundRegexMatch && !foundNoRegexMatch)
 		}
 	}
 	return found

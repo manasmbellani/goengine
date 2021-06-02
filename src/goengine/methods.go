@@ -169,6 +169,7 @@ func execCmd(target Target, checkID string, checkDetails CheckStruct,
 	cmdDir := checkDetails.CmdDir
 	cmds := checkDetails.Cmds
 	regex := checkDetails.Regex
+	noregex := checkDetails.NoRegex
 	alertOnMissing := checkDetails.AlertOnMissing
 	outfile := checkDetails.Outfile
 	writeToOutfileFlag := checkDetails.WriteToOutfile
@@ -183,7 +184,7 @@ func execCmd(target Target, checkID string, checkDetails CheckStruct,
 	totalOut := eCmd(subCmds, cmdDir)
 
 	// If matching regex found, then print the result
-	if shouldNotify(totalOut, regex, alertOnMissing) {
+	if shouldNotify(totalOut, regex, noregex, alertOnMissing) {
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag,
@@ -201,6 +202,7 @@ func execAWSCLICmd(target Target, checkID string, checkDetails CheckStruct,
 	cmdDir := checkDetails.CmdDir
 	cmds := checkDetails.Cmds
 	regex := checkDetails.Regex
+	noregex := checkDetails.NoRegex
 	alertOnMissing := checkDetails.AlertOnMissing
 	outfile := checkDetails.Outfile
 	writeToOutfileFlag := checkDetails.WriteToOutfile
@@ -217,7 +219,7 @@ func execAWSCLICmd(target Target, checkID string, checkDetails CheckStruct,
 	totalOut := eCmd(awsCmds, cmdDir)
 
 	// If matching regex found, then print the result
-	if shouldNotify(totalOut, regex, alertOnMissing) {
+	if shouldNotify(totalOut, regex, noregex, alertOnMissing) {
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
@@ -234,6 +236,7 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 	cmdDir := checkDetails.CmdDir
 	cmds := checkDetails.Cmds
 	regex := checkDetails.Regex
+	noregex := checkDetails.NoRegex
 	alertOnMissing := checkDetails.AlertOnMissing
 	outfile := checkDetails.Outfile
 	writeToOutfileFlag := checkDetails.WriteToOutfile
@@ -263,7 +266,7 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 	totalOut := eCmd(gcloudCmds, cmdDir)
 
 	// If matching regex found, then print the result
-	if shouldNotify(totalOut, regex, alertOnMissing) {
+	if shouldNotify(totalOut, regex, noregex, alertOnMissing) {
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
@@ -280,6 +283,7 @@ func execBQCmd(target Target, checkID string, checkDetails CheckStruct,
 	cmdDir := checkDetails.CmdDir
 	cmds := checkDetails.Cmds
 	regex := checkDetails.Regex
+	noregex := checkDetails.NoRegex
 	alertOnMissing := checkDetails.AlertOnMissing
 	outfile := checkDetails.Outfile
 	writeToOutfileFlag := checkDetails.WriteToOutfile
@@ -295,7 +299,7 @@ func execBQCmd(target Target, checkID string, checkDetails CheckStruct,
 	totalOut := eCmd(bqCmds, cmdDir)
 
 	// If matching regex found, then print the result
-	if shouldNotify(totalOut, regex, alertOnMissing) {
+	if shouldNotify(totalOut, regex, noregex, alertOnMissing) {
 		generateStdOutNotification(checkDetails.Type, checkID, target.Target)
 	} else {
 		outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, target)
@@ -312,6 +316,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 	urls := checkDetails.Urls
 	httpMethod := checkDetails.HTTPMethod
 	regex := checkDetails.Regex
+	noregex := checkDetails.NoRegex
 	alertOnMissing := checkDetails.AlertOnMissing
 	mheaders := checkDetails.Headers
 	mbody := checkDetails.Body
@@ -408,7 +413,7 @@ func execWebRequest(target Target, checkID string, checkDetails CheckStruct,
 			//fmt.Println(requestOut)
 
 			// If matching regex found, then print the result
-			if shouldNotify(requestOut, regex, alertOnMissing) {
+			if shouldNotify(requestOut, regex, noregex, alertOnMissing) {
 				generateStdOutNotification(checkDetails.Type, checkID, urlToCheckSub)
 			} else {
 				outfile = generateOutfile(checkID, writeToOutfileFlag, outfile, 
