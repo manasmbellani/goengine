@@ -53,7 +53,8 @@ func execCheck(target Target, checkID string, checkDetails CheckStruct,
 			outfolder, overwriteOutfiles)
 	} else if checkType == "find" {
 		execFindSearch(target, checkID, checkDetails, outfolder, overwriteOutfiles)
-	} else if checkType == "browser" || checkType == "webbrowser" {
+	} else if checkType == "browser" || checkType == "webbrowser" || 
+	  checkType == "webbrowse" || checkType == "browse" {
 		execURLInBrowser(target, checkID, checkDetails, browserPath)
 	} else if checkType == "shodan" {
 		execShodanSearchInBrowser(target, checkID, checkDetails, browserPath)
