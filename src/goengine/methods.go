@@ -241,6 +241,7 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 	alertOnMissing := checkDetails.AlertOnMissing
 	outfile := checkDetails.Outfile
 	writeToOutfileFlag := checkDetails.WriteToOutfile
+	disableYes := checkDetails.DisableYes
 
 	// Set the default configuration before running the gcloud command
 	gcloudConfigCmdsTemplate := []string{
@@ -259,7 +260,12 @@ func execGCloudCmd(target Target, checkID string, checkDetails CheckStruct,
 	// Convert actual commands to run to GCP Commands
 	var gcloudCmds []string
 	for _, cmd := range cmds {
-		gcloudCmd := subTargetParams("gcloud "+cmd, target)
+		gcloudCmd := ""
+		if disableYes {
+			gcloudCmd = subTargetParams("gcloud "+cmd, target)
+		} else {
+			gcloudCmd = subTargetParams("yes | gcloud "+cmd, target)
+		}
 		gcloudCmds = append(gcloudCmds, gcloudCmd)
 	}
 

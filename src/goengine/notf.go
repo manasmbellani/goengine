@@ -32,6 +32,7 @@ func shouldNotify(out string, regex string, noregex string,
 		outWithoutNewLines := strings.ReplaceAll(out, "\n", NewLineReplacement)
 		outWithoutNewLines = strings.ReplaceAll(outWithoutNewLines, "\r", NewLineReplacement)
 		foundRegexMatch, _ := regexp.MatchString(regex, outWithoutNewLines)
+		
 		var foundNoRegexMatch bool
 		if noregex != "" {
 			foundNoRegexMatch, _ = regexp.MatchString(noregex, outWithoutNewLines)

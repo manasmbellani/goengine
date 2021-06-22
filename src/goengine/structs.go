@@ -53,6 +53,7 @@ type CheckStruct struct {
 	NoRegex        string   `yaml:"noregex"`
 	AlertOnMissing bool     `yaml:"alertonmissing"`
 	Notes          string   `yaml:"notes"`
+	DisableYes     bool 	`yaml:"disableyes"`
 }
 
 // ChecksFileStruct defines the structure of the Checks file (in YAML)
