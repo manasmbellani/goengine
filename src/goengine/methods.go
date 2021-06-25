@@ -40,7 +40,7 @@ func execCheck(target Target, checkID string, checkDetails CheckStruct,
 		checkID, checkType, target)
 	if checkType == "cmd" {
 		execCmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
-	} else if checkType == "aws" {
+	} else if checkType == "aws" || checkType == "awscli" {
 		execAWSCLICmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
 	} else if checkType == "gcloud" {
 		execGCloudCmd(target, checkID, checkDetails, outfolder, overwriteOutfiles)
