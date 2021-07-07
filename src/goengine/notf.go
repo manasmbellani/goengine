@@ -31,11 +31,22 @@ func shouldNotify(out string, regex string, noregex string,
 	if regex != "" {
 		outWithoutNewLines := strings.ReplaceAll(out, "\n", NewLineReplacement)
 		outWithoutNewLines = strings.ReplaceAll(outWithoutNewLines, "\r", NewLineReplacement)
-		foundRegexMatch, _ := regexp.MatchString(regex, outWithoutNewLines)
+		regexExpr, _ := regexp.Compile(noregex)
+		occurs := regexExpr.FindAllString(outWithoutNewLines, 1)
+		var foundRegexMatch bool
+		if len(occurs) > 0 {
+			foundRegexMatch = true
+			log.Printf("Found regex match: %s\n", occurs[0])
+		}
 		
 		var foundNoRegexMatch bool
 		if noregex != "" {
-			foundNoRegexMatch, _ = regexp.MatchString(noregex, outWithoutNewLines)
+			noRegexExpr, _ := regexp.Compile(noregex)
+			occurs := noRegexExpr.FindAllString(outWithoutNewLines, 1)
+			if len(occurs) > 0 {
+				foundNoRegexMatch = true
+				log.Printf("Found noregex match: %s\n", occurs[0])
+			}
 		}
 		if alertOnMissing {
 			found = !(foundRegexMatch && !foundNoRegexMatch)
