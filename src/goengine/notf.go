@@ -36,7 +36,7 @@ func shouldNotify(out string, regex string, noregex string,
 		var foundRegexMatch bool
 		if len(occurs) > 0 {
 			foundRegexMatch = true
-			log.Println("Found regex match:")
+			log.Println("[*] Found regex match:")
 			for _, o := range occurs {
 				log.Printf("    %s\n", o)
 			}
@@ -48,7 +48,7 @@ func shouldNotify(out string, regex string, noregex string,
 			occurs := noRegexExpr.FindAllString(outWithoutNewLines, -1)
 			if len(occurs) > 0 {
 				foundNoRegexMatch = true
-				log.Println("Found noregex match:")
+				log.Println("[*] Found noregex match:")
 				for _, o := range occurs {
 					log.Printf("    %s\n", o)
 				}
