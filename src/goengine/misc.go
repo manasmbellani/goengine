@@ -8,6 +8,7 @@ import (
 func subTargetParams(str string, target Target) string {
 	ustr := str
 	ustr = strings.ReplaceAll(ustr, "{target}", target.Target)
+	ustr = strings.ReplaceAll(ustr, "{input}", target.Target)
 	ustr = strings.ReplaceAll(ustr, "{host}", target.Host)
 	ustr = strings.ReplaceAll(ustr, "{domain}", target.Host)
 	ustr = strings.ReplaceAll(ustr, "{hostname}", target.Host)
