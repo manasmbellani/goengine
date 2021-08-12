@@ -1,6 +1,5 @@
-# govulnreview
-Golang script to perform vulnerability review
-
+# Goengine
+Golang script to perform vulnerability review and execute other checks via `goengine`
 
 ## Setup
 ### Via go-get
