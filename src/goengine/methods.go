@@ -28,6 +28,9 @@ const ShodanSearchTemplateURL = "https://www.shodan.io/search?query="
 // GoogleSearchTemplateURL is the Google URL search template
 const GoogleSearchTemplateURL = "https://www.google.com/search?q="
 
+// GithubSearchTemplateURL is the Github URL search template
+const GithubSearchTemplateURL = "https://github.com/search?q="
+
 // execCheck is generally used to execute particular commands
 func execCheck(target Target, checkID string, checkDetails CheckStruct,
 	outfolder string, browserPath string, extensionsToExclude string,
@@ -60,6 +63,8 @@ func execCheck(target Target, checkID string, checkDetails CheckStruct,
 		execShodanSearchInBrowser(target, checkID, checkDetails, browserPath)
 	} else if checkType == "google" {
 		execGoogleSearchInBrowser(target, checkID, checkDetails, browserPath)
+	} else if checkType == "github" {
+		execGithubSearchInBrowser(target, checkID, checkDetails, browserPath)
 	} else if checkType == "notes" || checkType == "" {
 		// Do nothing with notes
 	} else {
@@ -136,6 +141,21 @@ func execGoogleSearchInBrowser(target Target, checkID string, checkDetails Check
 
 		// Prepare a Google search URL and open in browser
 		searchURL := GoogleSearchTemplateURL + searchQuery
+		urlToOpen := subTargetParams(searchURL, target)
+		openURLInBrowser(urlToOpen, browserPath)
+	}
+}
+
+// execGithubSearchInBrowser opens URL(s) in a browser
+func execGithubSearchInBrowser(target Target, checkID string, checkDetails CheckStruct, 
+	browserPath string) {
+
+	searchesQueries := checkDetails.Searches
+
+	for _, searchQuery := range searchesQueries {
+
+		// Prepare a Google search URL and open in browser
+		searchURL := GithubSearchTemplateURL + searchQuery
 		urlToOpen := subTargetParams(searchURL, target)
 		openURLInBrowser(urlToOpen, browserPath)
 	}
