@@ -119,15 +119,18 @@ func execURLInBrowser(target Target, checkID string, checkDetails CheckStruct,
 // execShodanSearchInBrowser opens URL(s) in a browser
 func execShodanSearchInBrowser(target Target, checkID string, checkDetails CheckStruct, 
 	browserPath string) {
+		
+	shodanSearchParams := []string{"{company}", "hostname:{domain}", "org:{company}", "{domain}"}
 
 	searchesQueries := checkDetails.Searches
 
 	for _, searchQuery := range searchesQueries {
-
-		// Prepare a shodan search URL and open in browser
-		searchURL := ShodanSearchTemplateURL + searchQuery
-		urlToOpen := subTargetParams(searchURL, target)
-		openURLInBrowser(urlToOpen, browserPath)
+		for _, shodanSearchParam := range shodanSearchParams {
+			// Prepare a shodan search URL using each parameter, and open in a browser
+			searchURL := ShodanSearchTemplateURL + searchQuery + " " + shodanSearchParam
+			urlToOpen := subTargetParams(searchURL, target)
+			openURLInBrowser(urlToOpen, browserPath)
+		}
 	}
 }
 
@@ -135,14 +138,19 @@ func execShodanSearchInBrowser(target Target, checkID string, checkDetails Check
 func execGoogleSearchInBrowser(target Target, checkID string, checkDetails CheckStruct, 
 	browserPath string) {
 
+	googleSearchParams := []string{"{company}", "site:{domain}"}
+
 	searchesQueries := checkDetails.Searches
 
 	for _, searchQuery := range searchesQueries {
+		
+		for _, googleSearchParam := range googleSearchParams {
 
-		// Prepare a Google search URL and open in browser
-		searchURL := GoogleSearchTemplateURL + searchQuery
-		urlToOpen := subTargetParams(searchURL, target)
-		openURLInBrowser(urlToOpen, browserPath)
+			// Prepare a Google search URL and open in browser
+			searchURL := GoogleSearchTemplateURL + searchQuery + " " + googleSearchParam
+			urlToOpen := subTargetParams(searchURL, target)
+			openURLInBrowser(urlToOpen, browserPath)
+		}
 	}
 }
 
@@ -152,12 +160,15 @@ func execGithubSearchInBrowser(target Target, checkID string, checkDetails Check
 
 	searchesQueries := checkDetails.Searches
 
-	for _, searchQuery := range searchesQueries {
+	githubSearchParams := []string{"{company}", "{domain}"}
 
-		// Prepare a Google search URL and open in browser
-		searchURL := GithubSearchTemplateURL + searchQuery
-		urlToOpen := subTargetParams(searchURL, target)
-		openURLInBrowser(urlToOpen, browserPath)
+	for _, searchQuery := range searchesQueries {
+		for _, githubSearchParam := range githubSearchParams {
+			// Prepare a Google search URL and open in browser
+			searchURL := GithubSearchTemplateURL + searchQuery + " " + githubSearchParam
+			urlToOpen := subTargetParams(searchURL, target)
+			openURLInBrowser(urlToOpen, browserPath)
+		}
 	}
 }
 
